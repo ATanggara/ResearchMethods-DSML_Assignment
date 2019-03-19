@@ -1,0 +1,661 @@
+---
+title: COMP2550/COMP4450/COMP6445 - Data Science and Applied Machine Learning Lab Tutorial
+author: "Dr. Marian-Andrei Rizoiu"
+date: "13 March 2019"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+# Introduction
+
+This tutorial follows-up on the quantitative methods tutorial.
+Here you will learn how to apply typical machine learning algorithms in order to do predictions, using `R` and the `caret` data science toolkit.
+At the end of this tutorial, you should have a basic functioning knowledge of how to run a plethora of ML methods, but also of how to deploy tools for auxiliary techniques such as:
+
+* Data preparation (imputation, centering/scaling data, removing correlated predictors, reducing skewness)
+* Variable selection
+* Model evaluation and selection
+
+We will be using the same `#DebateNight` dataset introduced in the quantitative methods tutorial.
+This tutorial assumes that you have completed the previous tutorial, meaning that you know:
+
+* the basic functionalities and the syntax of `R`;
+* how to load and install packages in `R`;
+* the basic plotting functionalities in `R`;
+* the structure of the `#DebateNight` dataset;
+* how to load and how to perform basic analysis on `#DebateNight`.
+
+# Pre-requisites: constructing a usable numeric dataset
+
+Most classical machine learning approaches expect a numeric dataset in a tabular format (as described in the lecture), in which features are either real numbers or discrete factors.
+While more complex algorithms can handle other types of data (e.g. text), in this tutorial we concentrate on numeric datasets.
+In your assignment you have the liberty of exploring and using any ML algorithms and any data you may wish.
+
+We start by loading the `caret` machine learning toolkit package (we discuss `caret` later on) together with other packages required for basic data wrangling.
+Note that you might need to first install `caret` and/or `dplyr` using the RStudio "Packages" tab or using the command `install.packages( c("caret", "dplyr"), dependencies = TRUE)` in the console.
+```{r, warning=FALSE,message=FALSE,error=FALSE}
+# load in packages
+library(caret)
+library(dplyr)
+```
+
+### Loading the `#DebateNight` dataset
+
+We start with a series of operation already performed in quantitative measures tutorial.
+First, we load the 100,000 sample of the `#DebateNight` dataset:
+```{r}
+# load the dataset
+data_df <- read.csv("sample_users_100k.csv", sep="\t", stringsAsFactors = F)
+```
+Next, we coerce the `botscore` variable to be numeric and we correct abnormal values:
+```{r warning=FALSE,error=FALSE}
+# make botscore numerical and correct invalid data
+data_df$botscore <- as.numeric(data_df$botscore)
+toDel <- which(data_df$botscore < 0)
+data_df <- data_df[-toDel,]
+toDel <- which(is.na(data_df$botscore))
+data_df <- data_df[-toDel,]
+```
+Finally, we construct the $\psi$ measure, defined as the ratio of friends (`friendsCount`) to followers (`followersCount`):
+```{r}
+# construct the $\psi$ measure from the previous tutorial
+data_df[which(data_df$followersCount == 0), ][,c('followersCount', 'friendsCount')]
+
+data_df$psi <- data_df$friendsCount / (data_df$followersCount + 0.01)
+```
+
+```{r}
+summary(data_df)
+```
+
+### Construct a numerical dataset.
+
+Let's explore the types of features in `data_df` using the `str` command.
+```{r}
+str(data_df)
+```
+Visibly, out of the `r ncol(data_df)` features in `data_df`, many are of the type character (`chr`).
+Some are already numerical (`num` and `int`) while other are logical and need to be transformed in a meaningful way.
+We perform the following operations:
+
+* we keep all numerical features and we drop entries with `NA` values;
+* we convert `verified` to numerical (True to 1 and False to 0; `NA` to 0);
+* for `location.objectType`, we convert "place" to 1, `NA` to 0;
+* for `mcsize` (i.e. mean cascade size, the mean size of cascades started by a given user, [see full meaning in the paper here](https://arxiv.org/pdf/1802.09808.pdf): https://arxiv.org/pdf/1802.09808.pdf):  convert `NA` to 0.
+
+```{r}
+# Deal with missing value and category variables: 
+features = c(
+  'listedCount', # drop na
+  'favoritesCount', # drop na
+  'friendsCount', # drop na
+  'followersCount', # drop na
+  'verified', # convert True to 1 and False to 0; na to 0 
+  'location.objectType', # convert "place" to 1, na to 0 
+  'mcsize', # convert na to 0
+  'influence', # drop na
+  'influence_percentile', # drop na
+  'tweetsCount', # drop na
+  'retweetsCount', # drop na
+  'psi',
+  'botscore' # drop na
+)
+
+# keep only selected features
+data_df <- data_df[, features]
+
+# clean verified
+data_df$verified[is.na(data_df$verified)] <- F
+data_df$verified <- data_df$verified * 1
+
+# clean location.objectType
+data_df$location.objectType[data_df$location.objectType == "place"] <- 1
+data_df$location.objectType[is.na(data_df$location.objectType)] <- 0
+data_df$location.objectType <- as.numeric(data_df$location.objectType)
+
+# clean mcsize
+data_df$mcsize[is.na(data_df$mcsize)] <- 0
+
+# remove non-complete entries
+toKeep <- rowSums(is.na(data_df)) == 0
+data_df <- data_df[toKeep, ]
+
+```
+
+For speeding up training and testing, in the rest of this tutorial we use a sample of 1000 rows for training, and another 1000 rows sample for testing.
+Note that in your assignment, for best performances, you will want to learn on as many entries as possible (ideally all 100,000).
+```{r}
+# first construct a train and a test sample, each of 1000 users
+# set.seed(287)
+sample2k <- sample_n(tbl = data_df, size = 2000, replace = F)
+
+data_train <- sample2k[1:1000,]
+data_test <- sample2k[1001:2000,]
+```
+Finally, let's take a look at the summary of the training dataset:
+```{r}
+print(sprintf("Our sample has %d rows", nrow(data_train)))
+summary(data_train)
+```
+
+
+# Caret: an `R` package for machine learning
+
+In the rest of this tutorial, we will applying Machine Learning (ML) techniques in order to learn and predict the `botscore` class variable in `#DebateNight` as a function of all the other features in the dataset.
+We will perform two tasks:
+a **regression task** in which we aim to predict a real value (i.e. the botscore)
+a **classification task** in which the class variable is discrete (i.e. we predict if a particular is a bot or not).
+Let’s start by looking at an example.
+
+### A simple exercise
+
+Imagine that you want to understand the relationship between the $\psi$ measure introduced earlier and the `botness` score.
+In the previous tutorial you have already used statistical testing to show that $\phi$ and `botness` are related.
+Now we want to quantify this relationship.
+A good starting point would be to simply plot the data, so first, we’ll create a scatterplot:
+```{r}
+large_psi_nofollow = data_train[which(data_train$psi>12 & data_train$followersCount==0), ]
+psi_aug = large_psi_nofollow[, c('psi', 'followersCount', 'friendsCount')]
+psi_aug
+
+data_train[which(data_train$psi>12 & data_train$followersCount==0), ] <- 1
+
+data_train[which(data_train$psi>12), ][, c('psi', 'followersCount', 'friendsCount')]
+
+plot(formula = botscore ~ psi, data = data_train)
+```
+
+It appears that there are limitations to how much we can learn about the relation of $\psi$ and the botscore from simple descriptive analysis and plotting.
+Let us turn to machine learning techniques.
+
+```{r}
+# datapoints with high psi value
+psi_comp = c('friendsCount', 'followersCount', 'psi')
+large_psi = data_train[which(data_train$psi > 12), ]
+large_psi[, psi_comp]
+```
+
+### A quick introduction to caret
+
+`R` has a wide number of packages for ML, which is great, but also quite frustrating since each package was designed independently and has very different syntax, inputs and outputs.
+This means that if you want to do machine learning in `R`, you have to learn a large number of separate methods.
+
+`Caret` stands for **C**lassification **A**nd **Re**gression **T**raining and it solves the aforementioned problem by streamlining the learning process.
+`Caret` provides tools for almost every part of the model building process, and moreover, provides a common interface to these different machine learning methods.
+For example, `caret` provides a simple, common interface to almost every machine learning algorithm in R. 
+When using caret, different learning methods like linear regression, neural networks, and support vector machines, all share a common syntax (the syntax is basically identical, except for a few minor changes).
+An extensive vignette for caret can be found here: https://topepo.github.io/caret/index.html
+
+### A simple view of caret: the default `train` function
+
+Imagine you want to learn from data the relationship between $\psi$ and botscore. 
+In mathematical terms, this means identifying a function, $f(\psi)$, that describes the relationship between $\psi$ and botscore.
+Initially, we make an additional assumption that this relationship is linear; we’ll assume that that it can be described by a straight line of the form 
+$f(\psi) = \beta_0 + \beta_1 \psi$.
+Therefore, we will use a linear regressions to build our machine learning model.
+
+To implement your machine learning model of choice using caret, your main tool is the `train` function. 
+The options for the method (model) are many and are listed here: https://topepo.github.io/caret/available-models.html. 
+Here is the syntax for learning our linear regression model:
+```{r}
+# can we train a linear model to this?
+fitControl <- trainControl(
+  # Repeated 5–fold CV 
+  method = "repeatedcv",
+  number = 10,
+  # repeated 10 times
+  repeats = 10,
+  returnResamp = "all")
+
+model_lm_psi <- train(botscore ~ psi + influence_percentile + verified, data = data_train,
+                      method = "lm", trControl = fitControl)
+```
+That’s it. The syntax for building a linear regression is extremely simple with caret.
+Now, let’s look more closely at the syntax and how it works.
+
+When training a model using `train()`, you only need to tell it a few things:
+
+– The dataset you are working with  
+– The target variable you are trying to predict (e.g., the `botscore` variable)  
+– The input variable (e.g., the `psi` variable)  
+– The machine learning method you want to use (in this case “linear regression”)
+
+**Formula notation.**
+In caret’s syntax, you identify the target variable and input variables using the “formula notation.”
+The basic syntax for formula notation is y ~ x, where y is your target variable, and x is your predictor.
+
+Effectively, y ~ x tells caret "I want to predict y on the basis of a single input, x.""
+
+Now, with this knowledge about caret’s formula syntax, let’s reexamine the above code. 
+Because we want to predict `botscore` on the basis of $\psi$, we use the formula `botscore ~ psi`. 
+
+**The data = parameter.**
+The `train()` function also has a `data =` parameter, which tells the `train()` function what dataset we’re using to build the model.
+`data = data_train` tells `caret` that the data and the relevant variables can be found in the training dataset that we constructed earlier.
+
+**The method = parameter.**
+This parameter indicates what machine learning method we want to use to predict `botscore`. 
+In this case, we are building a linear regression model, so we are using the argument "lm".
+Later, we will use "random forests" and you will have all the liberty of trying as many models as you with in the assignment.
+
+**Resampling options (`trainControl`).**
+One of the most important part of training ML models is tuning parameters. 
+In the above example, we used the **`trainControl`** function to specify that we want to repeat 10 times a 5-cross validation.
+The object that is outputted from `trainControl` (i.e. `fitControl` in the above example) was provided as an argument for `train`.
+
+### Visualizing the linear model
+
+So far, we have only trained the linear model, now we will visualize it and use it for prediction.
+We can obtain a number of information about our trained model (such as re-sampling strategy, performance measures on the training set) by simply executing:
+```{r}
+model_lm_psi
+```
+
+Furthermore, in the two dimensional space of $\psi$ and `botscore`, a linear model is a straight line.
+Let's see how that looks like:
+```{r}
+plot(formula = botscore ~ psi, data = data_train)
+# retrieve coefficients for the slope and for psi
+coef.icept <- coef(model_lm_psi$finalModel)[1]
+coef.slope <- coef(model_lm_psi$finalModel)["psi"]
+abline(a = coef.icept, b = coef.slope, col = "red", lwd = "3")
+
+```
+
+Is this good? Looks alright for some of the points with high values of $\psi$ but unclear for the rest.
+
+**Testing on unseen data.**
+The main purpose of ML techniques is to predict on unseen data.
+Let evaluate how well the learned model can predict on unseen data (i.e. the training set that we constructed earlier).
+Note that at no point did `caret` observe the testing dataset (i.e. `data_test`) so far.
+Therefore, performances on this dataset represent the generalization performance of the model to data it has not observed.
+This can be simply achieved using the `predict()` function:
+```{r}
+# predict the outcome on a test set
+model_lm_psi_pred <- predict(model_lm_psi, data_test)
+```
+How well does it do?
+```{r}
+head(data.frame(predicted = model_lm_psi_pred, 
+                observed = data_test$botscore, row.names = NULL), n=10)
+```
+
+Is this good? Rather than looking at raw predictions, we can compute performance measures using the `postResample` function:
+```{r}
+metrics <- data.frame(matrix(data = NA, nrow = 3, ncol = 0))
+metrics <- cbind(metrics, LM_psi = postResample(pred = model_lm_psi_pred, 
+                                                obs = data_test$botscore) )
+metrics
+```
+This outputs three performance measures:
+
+* [RMSE (Root Mean Square Error)](https://en.wikipedia.org/wiki/Root-mean-square_deviation) represents the sample standard deviation of the differences between predicted values and observed values. Lower is better;
+* [Rsquared $R^2$](https://en.wikipedia.org/wiki/Coefficient_of_determination) is the coefficient of determination -- i.e. the proportion of the variance in the dependent variable that is predictable from the independent variable(s). Higher is better;
+* [MAE (Mean Absolute Error)](https://en.wikipedia.org/wiki/Mean_absolute_error) is a measure of difference between two paired continuous variables. Lower is better.
+
+Which one to use? They all have their pluses and minuses, that is why we report them all here.
+The results seem not too bad, but they are averaged results, highly influenced by the outliers.
+Let's compute Absolute Relative Error (ARE) for each data point as: 
+
+$ARE(u) = \frac{\overline{botscore(u)} - botscore(u)}{botscore(u)}$
+
+where $\overline{botscore(u)}$ is the predicted value for `botscore`.
+The Mean ARE (MARE) is indicative of how well do we predict overall. 
+
+```{r}
+ARE_df <- data.frame(matrix(data = NA, nrow = nrow(data_test), ncol = 0))
+ARE_df <- cbind(ARE_df, 
+                LM_psi = abs(model_lm_psi_pred - data_test$botscore) / data_test$botscore)
+ARE_df <- do.call(data.frame, lapply(ARE_df, function(x) replace(x, is.infinite(x), NA)))
+metrics <- rbind(metrics, MARE = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T))
+
+print(metrics, digits = 2)
+```
+And we can plot it as a boxplot (with the red diamond being the mean value):
+```{r}
+boxplot(x = ARE_df, outline = F, names = names(ARE_df),
+        main = "Prediction ARE", ylab = "ARE")
+points(apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T), 
+       pch = 23, col = "red", bg = "red", cex = 2)
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T) - 0.06, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T)) )
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
+```
+
+### Simple feature engineering -- percentiles of $\psi$
+From the scatterplot shown earlier, the $\psi$ measure appears to have a skewed distribution and the relation with the `botscore` does not seem linear.
+We perform a simple feature engineering, by computing the percentiles of $\psi$ and using that to predict `botscore` instead of the real value:
+```{r}
+myecdf <- ecdf(sample2k$psi)
+data_train$psi_percentile <- myecdf(data_train$psi)
+data_test$psi_percentile <- myecdf(data_test$psi)
+```
+Let's plot the new scatterplot:
+```{r}
+plot(formula = botscore ~ psi_percentile, data = data_train)
+```
+
+One one hand, the trick spaced out the $\psi$ data points. However, a clear correlation is still not clear.
+Let's try a linear model again:
+```{r}
+model_lm_1 <- train(botscore ~ psi_percentile, data = data_train,
+                    method = "lm", trControl = fitControl)
+# get 2D line
+coef.icept <- coef(model_lm_1$finalModel)[1]
+coef.slope <- coef(model_lm_1$finalModel)["psi_percentile"]
+
+# and plot it
+plot(formula = botscore ~ psi_percentile, data = data_train)
+abline(a = coef.icept, b = coef.slope, col = "red")
+```
+
+and test on the unseen data:
+```{r}
+# predict the outcome on a test set
+model_lm_pred_1 <- predict(model_lm_1, data_test)
+
+ARE_df <- cbind(ARE_df, 
+                LM_psi_perc = abs(model_lm_pred_1 - data_test$botscore) / data_test$botscore)
+ARE_df <- do.call(data.frame, lapply(ARE_df, function(x) replace(x, is.infinite(x), NA)))
+
+# compare predicted outcome and true outcome
+metrics <- cbind(metrics, 
+                 LM_psi_perc = c(postResample(pred = model_lm_pred_1, obs = data_test$botscore), 
+                                 mean(ARE_df$LM_psi_perc, na.rm = T) ) )
+print(metrics, digits = 2)
+```
+and plot the boxplot of the ARE performance:
+```{r}
+
+boxplot(x = ARE_df, outline = F, names = names(ARE_df),
+        main = "Prediction ARE", ylab = "ARE")
+points(apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T), 
+       pch = 23, col = "red", bg = "red", cex = 2)
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T) - 0.06, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T)) )
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
+```
+
+Visibly, the new feature enables better prediction performances.
+Next, we will investigate how well can we predict taking all features into account.
+We achieve this by setting the formula `botscore ~ .` in the `train()` function.
+The dot `.` means all available features (apart from `botscore`):
+```{r}
+model_lm_2 <- train(botscore ~ ., data = data_train, 
+                    method = "lm", trControl = fitControl)
+
+# predict the outcome on a test set
+model_lm_pred_2 <- predict(model_lm_2, data_test)
+
+## compute error metrics
+ARE_df <- cbind(ARE_df, 
+                LM_all = abs(model_lm_pred_2 - data_test$botscore) / data_test$botscore)
+ARE_df <- do.call(data.frame, lapply(ARE_df, function(x) replace(x, is.infinite(x), NA)))
+# compare predicted outcome and true outcome
+metrics <- cbind(metrics, 
+                 LM_psi_perc = c(postResample(pred = model_lm_pred_2, obs = data_test$botscore), 
+                                 mean(ARE_df$LM_all, na.rm = T) ) )
+boxplot(x = ARE_df, outline = F, names = names(ARE_df),
+        main = "Prediction ARE", ylab = "ARE")
+points(apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T), 
+       pch = 23, col = "red", bg = "red", cex = 2)
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T) - 0.06, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T)) )
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
+```
+
+Taking all features into account provides even better prediction performances.
+By looking at the weight associated with each features, we get an idea of which features contribute most to the prediction:
+```{r}
+old <- par(mar = c(5, 9, 4, 2))
+barplot(height = sort(coef(model_lm_2$finalModel), decreasing = T), 
+        horiz = T, las = 1, col = "red", main = "Feature importance")
+par(old)
+```
+Visibly, $\psi$ percentile, the fact if a user is verified and high local influence are positively linked to a high botscore.
+
+# Dataset pre-processing (`preProcess`)
+
+As discussed in the lecture, data pre-processing can have a high impact on prediction performances.
+There are a number of pre-processing steps that are easily implemented by `caret`. 
+Several stand-alone functions from `caret` target specific issues that might arise when setting up the model. 
+These include
+
+* `dummyVars`: creating dummy variables from categorical variables with multiple categories
+* `nearZeroVar`: identifying zero- and near zero-variance predictors (these may cause issues when sub-sampling)
+* `findCorrelation`: identifying correlated predictors
+* `findLinearCombos`: identify linear dependencies between predictors
+
+In addition to these individual functions, there also exists the **`preProcess`** function which can be used to perform more common tasks such as centering and scaling, imputation and transformation. `preProcess` takes in a data frame to be processed and a method which can be any of "BoxCox", "YeoJohnson", "expoTrans", "center", "scale", "range", "knnImpute", "bagImpute", "medianImpute", "pca", "ica", "spatialSign", "corr", "zv", "nzv", and "conditionalX".
+
+On the training set data we will center, scale and perform a YeoJohnson transformation, identify and remove variables with near zero variance and perform pca in one command:
+```{r}
+data_train_preproc <- preProcess(select(data_train, - botscore), 
+                                 method = c("center", "scale", "YeoJohnson", "nzv", "pca"))
+data_train_preproc
+```
+Identify which variables were ignored, centered, scaled, etc
+```{r}
+data_train_preproc$method
+```
+and identify the principal components:
+```{r}
+data_train_preproc$rotation
+```
+
+We obtain pre-processed versions of the training and testing datasets by calling the `predict()` function, using the output of `preProcess()` as a model:
+```{r}
+# construct pre-processed training and testing datasets
+train_df <- predict(data_train_preproc, data_train)
+test_df <- predict(data_train_preproc, data_test)
+head(train_df)
+```
+We see that all feature (apart from the class `botscore`) have been replaced by their projection on the PCA axes.
+This has the effect of maintaining most of the information, while reducing the number of features (i.e. feature construction and reduction).
+
+Let us see how this affects a linear model training and prediction:
+```{r}
+model_lm_3 <- train(botscore ~ ., data = train_df, 
+                    method = "lm", trControl = fitControl)
+model_lm_pred_3 <- predict(model_lm_3, test_df)
+
+ARE_df <- cbind(ARE_df, 
+                LM_preproc = abs(model_lm_pred_3 - data_test$botscore) / data_test$botscore)
+ARE_df <- do.call(data.frame, lapply(ARE_df, function(x) replace(x, is.infinite(x), NA)))
+
+boxplot(x = ARE_df, outline = F, names = names(ARE_df),
+        main = "Prediction ARE", ylab = "ARE")
+points(apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T), 
+       pch = 23, col = "red", bg = "red", cex = 2)
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T) - 0.06, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T)) )
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
+```
+
+Compute performance metrics:
+```{r}
+# compare predicted outcome and true outcome
+metrics <- cbind(metrics, 
+                 LM_preproc = c(postResample(pred = model_lm_pred_3, obs = test_df$botscore), 
+                                mean(ARE_df$LM_preproc, na.rm = T) ) )
+```
+and plot them comparatively for each approach:
+```{r fig1, fig.height = 4, fig.width = 16}
+par(mfrow=c(1,4)) 
+for (i in 1:4) {
+  barplot(height = unlist(metrics[i,]), names.arg = names(metrics),
+          main = rownames(metrics)[i], col = cm.colors(4)[1:4])  
+}
+```
+It appears that pre-processing further improves prediction performances.
+Can we do any better?
+
+# Removing the hypothesis of linear dependency
+
+Up to here, we have been gradually improving the prediction performances.
+However, one assumption has not changed: we constantly assumed a linear relation between the descriptive features and the `botscore`. 
+But how realistic is such an assumption?
+Let us revisit the relation between $\psi$ and `botscore` and further analyze the distribution of $\psi$:
+```{r fig3, fig.height = 4, fig.width = 16, warning=FALSE,error=FALSE}
+par(mfrow=c(1,3)) 
+
+# scatterplot of psi and botness
+plot(formula = botscore ~ psi, data = data_train)
+# histogram of psi
+hist(data_train$psi, breaks = 1000, main = "Histogram of Psi", xlab = "Psi")
+# log-log plot of CCDF of psi
+myecdf <- ecdf(x = data_df$psi)
+myx <- seq(from = range(data_df$psi)[1], to = range(data_df$psi)[2], length.out = 1000)
+plot(x = myx, y = 1 - myecdf(myx),
+     type = "l", lwd = 3, col = "blue", log = "xy",
+     main = "(log-log) Empirical CCDF of Psi", xlab = "Psi", ylab = "Empirical CCDF")
+```
+
+Obviously, $\psi$ and `botness` do not look too correlated, and the main reason is the skewed distribution of $\psi$.
+The histogram of $\psi$ hints at a long-tailed distribution for $\psi$ (such as power-law, exponential, log-normal etc.)
+The log-log plot of the empirical CCDF (Complementary Cumulative Distribution Function) confirms this (i.e. when the log-log of the CCDF of a quantity resembles a straight line, the quantity is long-tail distributed).
+Long-tailed measurement (or outcomes) are very common in processes involving humans (think of the distribution of wealth in the world, or the number of friends on social networks).
+This has been theorized as "preferential attachment" or the rule of "rich-get-richer".
+
+The main effect of a long-tail distributed feature is that the relation between itself and the response variable (here `botness`) is unlikely to be linear.
+Therefore, linear models (such as the linear regression) appear badly suited to predict `botness`.
+Luckily, there exist non-linear regressors.
+Next we use such a non-linear learning algorithm, **random forests**:
+```{r}
+model_rf <- train(botscore ~ ., data = data_train, 
+                  method = "ranger", trControl = fitControl)
+# predict the outcome on a test set
+model_rf_pred <- predict(model_rf, data_test)
+
+ARE_df <- cbind(ARE_df, RF = abs(model_rf_pred - data_test$botscore) / data_test$botscore)
+ARE_df <- do.call(data.frame, lapply(ARE_df, function(x) replace(x, is.infinite(x), NA)))
+# compare predicted outcome and true outcome
+metrics <- cbind(metrics, 
+                 RF = c(postResample(pred = model_rf_pred, obs = test_df$botscore), 
+                        mean(ARE_df$RF, na.rm = T) ) )
+```
+
+Plot ARE performance relative to the performance of the linear models (note that random forests is train on the non-pre-processed data):
+```{r}
+boxplot(x = ARE_df, outline = F, names = names(ARE_df),
+        main = "Prediction ARE", ylab = "ARE")
+points(apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T), 
+pch = 23, col = "red", bg = "red", cex = 2)
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T) - 0.06, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T)) )
+text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03, 
+     labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
+```
+
+and comparatively for each measure:
+```{r fig2, fig.height = 4, fig.width = 16}
+par(mfrow=c(1,4)) 
+for (i in 1:4) {
+  barplot(height = unlist(metrics[i,]), names.arg = names(metrics),
+          main = rownames(metrics)[i], col = cm.colors(ncol(metrics))[1:ncol(metrics)])  
+}
+```
+
+It is quite obvious that using a the random forest non-linear classifier had a consistent impact on prediction performance (arguably larger than any improvements that we obtained with linear regression with feature engineering and data pre-processing).
+How much better can we get?
+You will discover this in your assignment.
+
+# Classification
+
+When the target class variable is discrete instead of a real number, the prediction exercise is called **classification** (instead of **regression**).
+There are dedicated algorithms for classification, and this exercise has its own hurdles (some of which we will find in the rest of this tutorial).
+
+One simple interpretation for `botness` is the "probability of a user being a bot" (`botness`$\in [0,1]$).
+We can construct a binary variable (`is_bot`) by binarizing the `botness` variable:
+when `botness` $> 0.5$, we consider the user to be a bot, when `botness`$\le 0.5$ the user is a human.
+
+```{r}
+# binarize the botscore
+sample2k$is_bot <- F
+sample2k$is_bot[sample2k$botscore > 0.5] <- T
+sample2k$is_bot <- factor(sample2k$is_bot)
+sample2k$botscore <- NULL
+
+summary(sample2k)
+```
+
+The first conclusion is that bots are quite rare, there are only `r sum(sample2k$is_bot == "TRUE")` bots in our sample of 2000 users.
+This is quite typical for classification problems, in which the class of interest tends to be rare (think at the automatic approaches for detecting cancer, which may occur in only 1% of the cases).
+
+Next, we will apply the **logistic regression** classification algorithm to detect bots.
+There are many, many, many other algorithms out there for you to try out in your assignment.
+First, we reconstruct the training and testing dataset to contain the `is_bot` features:
+```{r}
+data_train <- sample2k[1:1000,]
+data_test <- sample2k[1001:2000,]
+
+summary(data_train)
+```
+
+There are `r sum(data_train$is_bot == "TRUE")` bots in the training set and `r sum(data_test$is_bot == "TRUE")` in the test set.
+Training and testing a classifier in `caret` has the same syntax as for regressors.
+We will be using the `glmnet` implementation of logistic regression (under the hood of `caret`):
+```{r warning=FALSE,error=FALSE}
+# let's apply a logistic regression with the same sampling setup as the regression task
+model_logistic <- train(is_bot ~ ., data = data_train, 
+                        method = "glm", family="binomial", trControl = fitControl)
+model_logistic
+```
+
+and we can test it on the testing set:
+```{r}
+model_logistic_pred <- predict(model_logistic, data_test, type="raw")
+postResample(pred = model_logistic_pred, obs = data_test$is_bot)
+```
+
+Our classifiers reports a very high prediction accuracy.
+Normally, this would be reason for opening the champagne, but given that the majority class is prevalent in the dataset (`r sum(data_test$is_bot == "FALSE") / nrow(data_test) * 100`% of all users are NOT bots), this is suspicious.
+Simply saying that everyone is NOT a bot gives a very high accuracy.
+Let us construct the confusion matrix to further investigate:
+```{r}
+pred_obs <- data.frame(predicted = model_logistic_pred, observed = data_test$is_bot)
+confusionMatrix(data = model_logistic_pred, reference = data_test$is_bot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+It appears that our suspicion was correct!
+It appear that the class of interest (i.e. is_bot = `TRUE`) has a low prediction score (see Pos Pred Value)
+The balanced accuracy is barely higher than 0.5 (the random baseline).
+The other classic classification measures of Precision, Recall and F-Measure are also quite low,
+
+In `caret` we can easily compute Precision, Recall and F-Measure (outside of the `confusionMatrix()` function) using pre-existing functions.
+Note that we need to specify the "relevant" class (class of interest or "positive" class in the `confusionMatrix()` function):
+```{r}
+measures <- c(precision = precision(data = model_logistic_pred, 
+                                    reference = data_test$is_bot,
+                                    relevant = "TRUE"),
+              recall = recall(data = model_logistic_pred, 
+                              reference = data_test$is_bot, 
+                              relevant = "TRUE"),
+              fmeasure = F_meas(data = model_logistic_pred, 
+                                reference = data_test$is_bot, 
+                                relevant = "TRUE") )
+print(measures, digits = 2)
+```
+
+All three mreasure are defined between 0 (worst) and 1 (best).
+It is obvious that there is a lot of room to improve.
+
+# The way ahead: your assignment
+
+Here are a number of things that you can try in your assignment (for both classification and regression):
+
+* **stratified sampling** -- make sure the folds on which you learn contain both classes in the same percentage as the entire dataset;
+* **oversampling, undersampling** -- are both strategies to re-balance the dataset and improve prediction performance of the minority class;
+* **try out other classifiers** -- you can explore more complex and/or more powerful classifiers. One technique you might want to look into is bagging (ensemble methods), which take a set of weak classifiers and output one strong classifier through a voting system;
+* **feature preprocessing** -- in this tutorial we only scratched the surface of all the ways you can pre-process your dataset to improve prediction performance. Remember that 75% of the time invested in ML prediction is in understanding and processing your features. 
+For example, taking percentiles of a long-tailed feature is only one way you can correct the skewness, taking the `log` is another.
+And we haven't yet looked at the other features. How are they distributed? Does that impact prediction?
+* **more data** -- at the beginning to this tutorial, we constructed a numerical dataset and we have thrown away half of the features because they were not numeric.
+But maybe there is information in there crucial to detecting bots. How do we extract that?
+* **external data** -- you can use anything out there to improve the training of your classifier/regressor. Twitting patterns and the graph of other users might be indicative. *However, bear in mind that this information will not be available in the test set*!

@@ -1,0 +1,1039 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={COMP2550/COMP4450/COMP6445 - Quantitative Methods Lab Tutorial},
+            pdfauthor={Dr Dongwoo Kim (ANU)},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{COMP2550/COMP4450/COMP6445 - Quantitative Methods Lab Tutorial}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Dr Dongwoo Kim (ANU)}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{18 March 2019}
+
+
+\begin{document}
+\maketitle
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+In this tutorial we will be learning how to do quantitative research in
+a data science setting. We will be doing a small-scale project analysing
+Twitter data about social bots (automated accounts posing as humans)
+influencing public debate during the 1st U.S. Presidential Debate in
+2016.
+
+The dataset is taken from \href{https://arxiv.org/abs/1802.09808}{Rizoiu
+et al (2018)}
+
+`\#DebateNight: The Role and Influence of Socialbots on Twitter During
+the 1st U.S. Presidential Debate' (retrieved from
+\url{https://arxiv.org/abs/1802.09808})
+
+The \emph{assignment} in Week 4 follows on from this data set, but moves
+into the area of machine learning.
+
+Learning outcomes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Import and wrangle quantitative data in the R language (a statistical
+  programming language)
+\item
+  Basic knowledge of R programming for data science problems
+\item
+  Undertake descriptive statistical analysis of different data types
+\item
+  Plot data using graphs and label these appropriately
+\item
+  Undertake basic inferential statistics and evaluate statistical
+  significance
+\end{enumerate}
+
+The dataset for this tutorial consists of a \emph{random sample of
+100,000} observations derived from the `\#DEBATENIGHT' dataset in
+\href{https://arxiv.org/abs/1802.09808}{Rizoiu et al (2018)}.
+
+\hypertarget{what-is-the-debatenight-dataset}{%
+\subsection{What is the \#DEBATENIGHT
+dataset}\label{what-is-the-debatenight-dataset}}
+
+The \#DEBATENIGHT dataset contains Twitter discussions that occurred
+during the first 2016 U.S presidential debate between Hillary Clinton
+and Donald Trump. Using the Twitter Firehose API, we collected all the
+tweets (including retweets) that were authored during the two hour
+period from 8.45pm to 10.45pm EDT, on 26 September 2016, and which
+contain at least one of the hashtags: \#DebateNight, \#Debates2016,
+\#election2016, \#HillaryClinton, \#Debates, \#Hillary2016,
+\#DonaldTrump and \#Trump2016.
+
+The time range includes the 90 minutes of the presidential debate, as
+well as 15 minutes before and 15 minutes after the debate. The resulting
+dataset contains 6,498,818 tweets, emitted by 1,451,388 twitter users.
+For each user, the Twitter API provides aggregate information such as
+the number of followers, the total number (over the lifetime of the
+user) of emitted tweets, authored retweets, and favorites. For
+individual tweets, the API provides the timestamp and, if it is a
+retweet, the original tweet that started the retweet cascade.
+
+\hypertarget{installation-of-r-and-rstudio}{%
+\subsection{Installation of R and
+RStudio}\label{installation-of-r-and-rstudio}}
+
+This tutorial will be conducted using the R programming language. You
+will need to download the \href{https://cran.r-project.org/}{R base
+package} and optionally
+\href{https://www.rstudio.com/products/rstudio/download/}{RStudio} if
+you prefer a graphical user interface. Personally, I would encourage you
+to install RStudio as it makes project management much easier. It will
+also mean that you can open this tutorial RMarkdown file in RStudio and
+run the code directly.
+
+Tip: Create a new \emph{project} in RStudio where you can store your
+files for this project.
+
+\hypertarget{quick-overview-of-r}{%
+\subsection{Quick overview of R}\label{quick-overview-of-r}}
+
+In this section we will cover some basic concepts in the R language to
+get you up and running with it.
+
+\hypertarget{variables}{%
+\subsubsection{3.1 Variables}\label{variables}}
+
+Like any programming language, you write code and execute it in the
+console. A difference between other languages is the assignment
+operator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myVariable <-}\StringTok{ "Hello, world!"}
+\end{Highlighting}
+\end{Shaded}
+
+What is that strange notation: \texttt{\textless{}-} ? This is known as
+an assignment operator. In some ways \texttt{\textless{}-} is quite
+similar to \texttt{=}. However, there are important differences, which
+is why we use the \texttt{\textless{}-} notation rather than \texttt{=}.
+
+\hypertarget{data-structures-and-data-types}{%
+\subsubsection{Data structures and data
+types}\label{data-structures-and-data-types}}
+
+\hypertarget{vectors}{%
+\paragraph{Vectors}\label{vectors}}
+
+Probably the most important/common data structure in R are vectors. In
+fact, we have been already working with vectors. If you have been
+working through the previous examples, try typing in the following:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{is.vector}\NormalTok{(myVariable)}
+\end{Highlighting}
+\end{Shaded}
+
+In R, a vector is a set of elements that are most commonly character,
+logical, integer or numeric.
+
+Here is a simple numeric vector:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x <-}\StringTok{ }\DecValTok{5}
+\NormalTok{x}
+\end{Highlighting}
+\end{Shaded}
+
+Here is a character vector:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myName <-}\StringTok{ "John"}
+\NormalTok{myName}
+\end{Highlighting}
+\end{Shaded}
+
+We can look at attributes of vectors, e.g.~finding out how many
+characters \texttt{myName} is. In the following code, we are using the
+\texttt{nchar} function and providing as input our \texttt{myName}
+variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{nchar}\NormalTok{(myName)}
+\end{Highlighting}
+\end{Shaded}
+
+We can also assign `logical' or `boolean' vectors, which are either TRUE
+or FALSE:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{skyIsBlue <-}\StringTok{ }\OtherTok{TRUE}
+\NormalTok{skyIsBlue}
+\end{Highlighting}
+\end{Shaded}
+
+Then we can ask R to tell us whether \texttt{skyIsBlue} is TRUE or not,
+by feeding it into the \texttt{isTRUE} function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{isTRUE}\NormalTok{(skyIsBlue)}
+\end{Highlighting}
+\end{Shaded}
+
+We don't have to have only one element in a vector. Often we want to use
+multiple elements, e.g.~creating a numeric vector with the numbers 1
+through 5.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{countToFive <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{)}
+\NormalTok{countToFive}
+\end{Highlighting}
+\end{Shaded}
+
+We can also use shorthand notation to do the same thing:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{countToTen <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\DecValTok{10}
+\NormalTok{countToTen}
+\end{Highlighting}
+\end{Shaded}
+
+We can find out how many elements are in the numeric vector:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{length}\NormalTok{(countToTen)}
+\end{Highlighting}
+\end{Shaded}
+
+We can access the fifth element of \texttt{countToTen} using the square
+brackets notation. This indexes \texttt{countToTen} and looks for the
+fifth element, and returns the value to us.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{countToTen[}\DecValTok{5}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We can also access the first 3 elements:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{countToTen[}\DecValTok{1}\OperatorTok{:}\DecValTok{3}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We can find out information about our \texttt{countToTen} vector. The
+\texttt{typeof} function gives us basic information about the type of
+object. The \texttt{str} function is useful for finding out more detail
+what an object is. This tells us that it is of type `int' (integer).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{typeof}\NormalTok{(countToTen)}
+\KeywordTok{str}\NormalTok{(countToTen)}
+\end{Highlighting}
+\end{Shaded}
+
+We can also examine the \texttt{myName} character vector that we created
+earlier. Note the difference, namely that is of type `chr' (character).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{str}\NormalTok{(myName)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{matrices}{%
+\paragraph{Matrices}\label{matrices}}
+
+Matrices are special vectors in R. They are `atomic', so they can only
+contain data of one type (e.g.~you can't have a column with integer data
+and another column with character data).
+
+Matrices are filled column-wise, for example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myMatrix <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{6}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{2}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{3}\NormalTok{)}
+\NormalTok{myMatrix}
+\end{Highlighting}
+\end{Shaded}
+
+You can make a matrix out of two vector objects, for example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{vector1 <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\DecValTok{5}
+\NormalTok{vector2 <-}\StringTok{ }\DecValTok{6}\OperatorTok{:}\DecValTok{10}
+\NormalTok{myMatrix2 <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(vector1,vector2)}
+\NormalTok{myMatrix2}
+\end{Highlighting}
+\end{Shaded}
+
+There are some new things here. We defined two numeric vectors
+\texttt{vector1} and \texttt{vector2}. Then we used the \texttt{cbind}
+function to `stick' these together column-wise (i.e.~vertically next to
+each other). The result is stored in a new variable called
+\texttt{myMatrix2}, which is a matrix, because it is a multi-dimensional
+numeric vector. The matrix also has names for the columns, which it gets
+automatically from the names of the variables \texttt{vector1} and
+\texttt{vector2}.
+
+We can access the column names of myMatrix2:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{colnames}\NormalTok{(myMatrix2)}
+\end{Highlighting}
+\end{Shaded}
+
+We access the element in the first row and second column using the
+square bracket notation for accessing particular elements (i.e.~fishing
+out the values of particular cells of the matrix). Within the square
+brackets we have the row number on the left hand side of the comma, and
+the column number of the right hand side of the comma. For example, if
+we want to access the value of the cell in the first row and second
+column we would use:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myMatrix2[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We can access all of the second column of our matrix by simply not
+providing a row number (i.e.~leaving it empty on the left hand side of
+the comma):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myMatrix2[,}\DecValTok{2}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{lists}{%
+\paragraph{Lists}\label{lists}}
+
+Lists in R are fairly similar to other languages. They can contain
+elements of different types (unlike vectors and matrices).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myList <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\StringTok{"Hello"}\NormalTok{, }\DecValTok{1}\NormalTok{, }\OtherTok{TRUE}\NormalTok{, }\StringTok{"Goodbye"}\NormalTok{)}
+\NormalTok{myList}
+\end{Highlighting}
+\end{Shaded}
+
+We access elements in lists slightly differently to vectors, but still
+use the square brackets notation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myList[}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We are accessing the first `slice' of \texttt{myList}, which is a list
+which itself also contains one element, namely the character vector
+``Hello''. The list contains nested elements.
+
+We can get more specific and access the ``Hello'' element, using double
+square brackets notation. The next line of code accesses the first slice
+of \texttt{myList}, accessed using the subset \texttt{{[}1{]}}, and then
+the first element within that slice, accessed using the subset
+\texttt{{[}{[}1{]}{]}}. We are subsetting \texttt{myList} twice, once
+with \texttt{{[}1{]}} and secondly with \texttt{{[}{[}1{]}{]}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myList[[}\DecValTok{1}\NormalTok{]][}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Similarly, we access the first element of the \emph{second} slice of
+\texttt{myList} like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myList[[}\DecValTok{2}\NormalTok{]][}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{factors}{%
+\paragraph{Factors}\label{factors}}
+
+In R, factors are special vectors that represent categorical data.
+
+Here we create a factor \texttt{myFactor} that provides data on 5
+students and whether each one passed or failed their assignments. We can
+see that there are two `levels' to this factor, namely ``pass'' or
+``fail''. (This is a very badly performing sample of students!)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myFactor <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"pass"}\NormalTok{, }\StringTok{"fail"}\NormalTok{, }\StringTok{"fail"}\NormalTok{, }\StringTok{"pass"}\NormalTok{, }\StringTok{"fail"}\NormalTok{))}
+\NormalTok{myFactor}
+\end{Highlighting}
+\end{Shaded}
+
+We can subset the factor to find which students are ``fail''. This
+returns the indexes of the elements in \texttt{myFactor} that equal
+``fail''. Notice that the equals sign is \texttt{==} (not \texttt{=}).
+This double equals sign is used to test for equality. Here we are asking
+the question: which elements of \texttt{myFactor} are equal to ``fail''?
+If there are any elements that match, then it returns the indexes of
+these elements. Sure as eggs, they match up with what we expect (the
+2nd, 3rd, and 5th elements are fail).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{which}\NormalTok{(myFactor}\OperatorTok{==}\StringTok{"fail"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{data-frames}{%
+\paragraph{3.3.5 Data frames}\label{data-frames}}
+
+Data frames are very important in R, and we will use them a lot.
+
+Data frames are similar to matrices, in that they are often
+two-dimensional with rows and columns. Roughly speaking, the biggest
+difference between data frames and matrices is that data frames can
+contain columns \emph{with different types of data}.
+
+In this way, each column in the data frame can have a different data
+type, for example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{names =} \KeywordTok{c}\NormalTok{(}\StringTok{"John"}\NormalTok{,}\StringTok{"Jane"}\NormalTok{,}\StringTok{"Sally"}\NormalTok{), }
+  \DataTypeTok{testScores=}\KeywordTok{c}\NormalTok{(}\DecValTok{99}\NormalTok{,}\DecValTok{84}\NormalTok{,}\DecValTok{30}\NormalTok{), }\DataTypeTok{failingGrade=}\KeywordTok{c}\NormalTok{(}\OtherTok{FALSE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{, }\OtherTok{TRUE}\NormalTok{))}
+\NormalTok{df}
+\end{Highlighting}
+\end{Shaded}
+
+We can access the data in the third column in two ways. First, we can
+use the brackets notation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df[,}\DecValTok{3}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We can also use the dollar sign notation to do the same thing. We know
+that the third column of \texttt{df} has name, `failingGrade', so we can
+subset the data frame by name using the dollar sign notation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df}\OperatorTok{$}\NormalTok{failingGrade}
+\end{Highlighting}
+\end{Shaded}
+
+We can find the number of rows in data frame by calling the
+\texttt{nrow} function and supplying \texttt{df} as input to it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{nrow}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+We can also find out the structure of each column of \texttt{df} using
+the \texttt{str} function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{str}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+Finally, we can view the data frame quite nicely using the \texttt{View}
+function. This is especially useful for working with large data frames
+that we will be working with in the remainder of this tutorial.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{View}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{loading-and-wrangling-the-debatenight-dataset}{%
+\subsection{Loading and wrangling the \#DEBATENIGHT
+dataset}\label{loading-and-wrangling-the-debatenight-dataset}}
+
+Now that you are familiar with R syntax we will import the dataset and
+start analysing it.
+
+Download the dataset and save it to your local working directory in R.
+The dataset can be downloaded from:
+\url{http://128.199.169.209/sample_users_100k.csv.bz2} .
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_df <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"sample_users_100k.csv.bz2"}\NormalTok{,}\DataTypeTok{sep=}\StringTok{"}\CharTok{\textbackslash{}t}\StringTok{"}\NormalTok{,}\DataTypeTok{stringsAsFactors =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in file(file, "rt"): cannot open file 'sample_users_100k.csv.bz2':
+## No such file or directory
+\end{verbatim}
+
+\begin{verbatim}
+## Error in file(file, "rt"): cannot open the connection
+\end{verbatim}
+
+We also want to install an external R package called \texttt{Rmisc}. The
+Rmisc library contains many functions useful for data analysis and
+utility operations.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# install.packages("Rmisc")}
+\KeywordTok{library}\NormalTok{(Rmisc)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in library(Rmisc): there is no package called 'Rmisc'
+\end{verbatim}
+
+We will find out some information about our data:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{str}\NormalTok{(data_df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in str(data_df): object 'data_df' not found
+\end{verbatim}
+
+We can view the dataframe with the following command. It is useful to
+have this open so you can refer to it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{View}\NormalTok{(data_df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in as.data.frame(x): object 'data_df' not found
+\end{verbatim}
+
+A super useful function in R is \texttt{summary()}, which takes care of
+many descriptive statistics of interest for each variable:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(data_df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(data_df): object 'data_df' not found
+\end{verbatim}
+
+The \texttt{summarySE} function in the \texttt{Rmisc} package outputs
+the number of observations, mean, standard deviation, standard error of
+the mean, and confidence interval for grouped data. The summarySE
+function allows you to summarize over the combination of multiple
+independent variables by listing them as a vector,
+e.g.~c(``friendsCount'', ``followersCount'').
+
+First we will coerce the \texttt{verified} variable to a factor and use
+the \texttt{table} function to look at the distribution.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_df}\OperatorTok{$}\NormalTok{verified <-}\StringTok{ }\KeywordTok{as.factor}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{verified)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in is.factor(x): object 'data_df' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{table}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{verified)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in table(data_df$verified): object 'data_df' not found
+\end{verbatim}
+
+Then we call the \texttt{summarySE} function to look at how the number
+of followers of users (followersCount) varies depending on whether the
+user is `verified' or not (has established their true identity with
+Twitter). Obviously, celebrities and public figures will be more likely
+to verify themselves, so we can see that the followers numbers are much
+higher for verified users.
+
+At the same time, we see that standard error (SE) and confidence
+intervals (CI) are also higher for the sample of verified users.
+
+Remember when it comes to standard error and confidence interval,
+smaller is better: smaller values mean the more representative the
+sample will be of the overall population.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summarySE}\NormalTok{(}\DataTypeTok{data=}\NormalTok{data_df,}
+          \StringTok{"followersCount"}\NormalTok{,}
+          \DataTypeTok{groupvars=}\StringTok{"verified"}\NormalTok{,}
+          \DataTypeTok{conf.interval =} \FloatTok{0.95}\NormalTok{, }\DataTypeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summarySE(data = data_df, "followersCount", groupvars = "verified", : could not find function "summarySE"
+\end{verbatim}
+
+One of the variables we are particularly interested in is the
+\texttt{botscore}. Obviously, there is an issue with the summary
+statistics for this variable, because it should be numeric and the range
+should be 0 to 1.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(data_df$botscore): object 'data_df' not found
+\end{verbatim}
+
+As you can see, running the summary doesn't tell us much! We can see
+that the structure of this variable is of type \texttt{character}, and
+there are some clearly non-numeric values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{str}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in str(data_df$botscore): object 'data_df' not found
+\end{verbatim}
+
+So, let's wrangle this variable and fix it up. First, we will coerce it
+from character to numeric. Note the warning from R telling us that it
+had to introduce \texttt{NA} values. These \texttt{NA} values denote
+missing data and were previously the elements that were not numeric
+(e.g. `deleted', `suspended').
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_df}\OperatorTok{$}\NormalTok{botscore <-}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'data_df' not found
+\end{verbatim}
+
+When we re-run summary, we also notice that range has a problem with
+some erroneous data creeping (probably due to the coercion), with values
+of minus infinity (!) which R understands as \texttt{-Inf}. Let's fix
+that too.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{toDel <-}\StringTok{ }\KeywordTok{which}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore }\OperatorTok{<}\StringTok{ }\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in which(data_df$botscore < 0): object 'data_df' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_df <-}\StringTok{ }\NormalTok{data_df[}\OperatorTok{-}\NormalTok{toDel,]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'data_df' not found
+\end{verbatim}
+
+Now we have our correct bot scores:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(data_df$botscore): object 'data_df' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{sort}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore),}\DataTypeTok{main=}\StringTok{"Distribution of bot scores by users"}\NormalTok{,}
+        \DataTypeTok{ylab =} \StringTok{"Bot score"}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"# User"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in sort(data_df$botscore): object 'data_df' not found
+\end{verbatim}
+
+A more instructive view of the bot scores can be gained through box
+plots:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{boxplot}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore,}\DataTypeTok{main=}\StringTok{"Boxplot of bot score data"}\NormalTok{,}\DataTypeTok{ylab=}\StringTok{"Bot score"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in boxplot(data_df$botscore, main = "Boxplot of bot score data", : object 'data_df' not found
+\end{verbatim}
+
+You can see there are many scores that are determined as outliers. In
+order to be an outlier, the data value must be:
+
+\begin{itemize}
+\tightlist
+\item
+  larger than Q3 by at least 1.5 times the interquartile range (IQR), or
+\item
+  smaller than Q1 by at least 1.5 times the IQR.
+\end{itemize}
+
+Remember that the IQR = Q3 minus Q1.
+
+Another way to view the bot score data is using a histogram:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{hist}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore,}\DataTypeTok{main=}\StringTok{"Bot score histogram"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in hist(data_df$botscore, main = "Bot score histogram"): object 'data_df' not found
+\end{verbatim}
+
+A simple tweak to the function call lets you estimate and visualise a
+density plot:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{densityVal <-}\StringTok{ }\KeywordTok{density}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{botscore,}\DataTypeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in density(data_df$botscore, na.rm = T): object 'data_df' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(densityVal,}\DataTypeTok{type=}\StringTok{"n"}\NormalTok{, }\DataTypeTok{main=}\StringTok{"Density plot of bot scores"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in plot(densityVal, type = "n", main = "Density plot of bot scores"): object 'densityVal' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{polygon}\NormalTok{(densityVal, }\DataTypeTok{col=}\StringTok{"red"}\NormalTok{, }\DataTypeTok{border=}\StringTok{"gray"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in xy.coords(x, y, setLab = FALSE): object 'densityVal' not found
+\end{verbatim}
+
+\hypertarget{inferential-statistics}{%
+\subsection{Inferential statistics}\label{inferential-statistics}}
+
+In the lecture we learned about inferential statistics. When trying to
+determine whether two variables are related (e.g., class attendance and
+assignment grades), statistical testing of hypotheses is the tool most
+frequently used. To test this, two types of hypotheses are considered,
+the research or alternative hypothesis and the null hypothesis.
+
+In this section we will do some statistical tests to look at
+relationships between variables in the dataset.
+
+Although we could use a variety of tests, in this lab we will focus on
+using the t-test (as described in the lecture).
+
+\hypertarget{t-test-example}{%
+\subsubsection{T-test example}\label{t-test-example}}
+
+Suppose that we wish to find out whether there is a statistically
+significant difference between the mean of the ratio of friends
+(\texttt{friendsCount}) to followers (\texttt{followersCount}) of
+\emph{humans} VS \emph{bots}. Let's call this ratio \(psi\).
+
+Our intuition is that bots will follow other users but not attract as
+many followers back, whereas humans will tend to have a greater
+reciprocity of social ties. The \(psi\) metric is a crude way to measure
+this.
+
+Our research hypothesis might something like:
+
+\textbf{Ha: Bots will have a higher friends/followers ratio than
+humans.}
+
+The null hypothesis therefore:
+
+\textbf{Ho: There is no significant difference in \(psi\) between humans
+and bots.}
+
+First we calculate the ratio \(psi\) and store it in the dataframe. To
+avoid a situation of dividing by zero, we make a small adjustment to the
+formula.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data_df}\OperatorTok{$}\NormalTok{friendsFollowersRatio <-}\StringTok{ }\NormalTok{data_df}\OperatorTok{$}\NormalTok{friendsCount }\OperatorTok{/}\StringTok{ }\NormalTok{(data_df}\OperatorTok{$}\NormalTok{followersCount }\OperatorTok{+}\StringTok{ }\FloatTok{0.01}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'data_df' not found
+\end{verbatim}
+
+Let's now examine the means of the bot group versus the human group. We
+will use a very simple threshold. If the score is less than or equal to
+0.5, then \emph{human}; otherwise \emph{bot}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Human mean friend/follower ratio:}
+\KeywordTok{mean}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{friendsFollowersRatio[data_df}\OperatorTok{$}\NormalTok{botscore }\OperatorTok{<=}\StringTok{ }\FloatTok{0.5}\NormalTok{],}\DataTypeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in mean(data_df$friendsFollowersRatio[data_df$botscore <= 0.5], : object 'data_df' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Bot mean friend/follower ratio:}
+\KeywordTok{mean}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{friendsFollowersRatio[data_df}\OperatorTok{$}\NormalTok{botscore }\OperatorTok{>}\StringTok{ }\FloatTok{0.5}\NormalTok{],}\DataTypeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in mean(data_df$friendsFollowersRatio[data_df$botscore > 0.5], na.rm = T): object 'data_df' not found
+\end{verbatim}
+
+This suggests that bots have a much more positively skewed \(psi\)
+ratio. But how can we be sure it's not due to chance? We use the t-test.
+
+We want to specify a one-sided t-test because we want to establish not
+simply whether there is \emph{any} significant relationship between
+\(psi\) and bot score but also the direction of the relationship. We are
+hypothesising that when the friends/followers ratio \(psi\) is high, the
+bot score is also high. The parameter of the \texttt{t.test()} function
+for specifying this one-sided test is the \texttt{alternative}
+parameter, and we pass the ``greater'' argument to it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{t.test}\NormalTok{(data_df}\OperatorTok{$}\NormalTok{friendsFollowersRatio[data_df}\OperatorTok{$}\NormalTok{botscore }\OperatorTok{<=}\StringTok{ }\FloatTok{0.5}\NormalTok{],data_df}\OperatorTok{$}\NormalTok{friendsFollowersRatio[data_df}\OperatorTok{$}\NormalTok{botscore }\OperatorTok{>}\StringTok{ }\FloatTok{0.5}\NormalTok{],}\DataTypeTok{alternative =} \StringTok{"less"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in t.test(data_df$friendsFollowersRatio[data_df$botscore <= 0.5], : object 'data_df' not found
+\end{verbatim}
+
+From these results we can see that \texttt{t} (the t-ratio) is quite
+large and \texttt{p} (the p-value) is very small and much lower than
+\textless{} 0.001. \textbf{This is a significant result!}. Therefore, we
+can reject the null hypothesis and accept the research or alternative
+hypothesis, thus concluding that bots are more likely to have a higher
+\(psi\).
+
+Additionally: the null hypothesis is that the mean of \(psi\) for bots
+is 6.492005. The alternate hypothesis is that the data come from a
+distribution with mean greater than 6.492005.
+
+The test rejected the null hypothesis, and the 95\% confidence interval
+is that the mean is greater than 6.492005, which equivalent to saying it
+is in the interval {[}8.736995,Inf{]}.
+
+\hypertarget{data-exploration-and-analysis}{%
+\subsection{Data exploration and
+analysis}\label{data-exploration-and-analysis}}
+
+For the remainder of this lab session I encourage you to play around
+with the dataset, and to try out different things with it. You may wish
+to:
+
+\begin{itemize}
+\tightlist
+\item
+  wrangle or clean variables in order to use them in analysis
+\item
+  calculate some distributions and do some plots (e.g.~histograms and
+  boxplots)
+\item
+  do some statistical tests between variables and see whether you can
+  come up with significant p-values!
+\end{itemize}
+
+Have a look at the following webpage for a list of statistical tests you
+can experiment with in R:
+\url{http://r-statistics.co/Statistical-Tests-in-R.html} .
+
+The machine learning course next week will focus on linear regression,
+which follows on naturally from what you have learned here. You will
+move into the area of \emph{prediction} in the next lecture and lab. You
+can get a head start on the assignment by learning about and describing
+your data and testing some of the relationships in it!
+
+\hypertarget{conclusion}{%
+\subsection{Conclusion}\label{conclusion}}
+
+Thanks for attending today. If you have any questions please contact me
+(\href{mailto:Dongwoo.Kim@anu.edu.au}{\nolinkurl{Dongwoo.Kim@anu.edu.au}}).
+
+Dongwoo
+
+
+\end{document}
