@@ -166,7 +166,7 @@ data_test <- dataset[(split_point+1):nrow(dataset),]
 ```
 
 
-### Construct a Logistic Regression Classifier
+### Logistic Regression Classifier
 
 construct trainControl object
 ```{r}
@@ -178,7 +178,7 @@ train_control <- trainControl(
 )
 ```
 
-
+contruct Logistic Regression Classifier
 ```{r}
 model_logistic <- train(isbot ~ ., data = data_train, 
                         method = "glm", family="binomial", trControl = train_control)
@@ -191,7 +191,7 @@ model_logistic_pred <- predict(model_logistic, data_test, type="raw")
 postResample(pred = model_logistic_pred, obs = data_test$isbot)
 ```
 
-#### Confusion Matrix
+Logistic Regression Confusion Matrix
 ```{r}
 pred_obs <- data.frame(predicted = model_logistic_pred, observed = data_test$isbot)
 confusionMatrix(data = model_logistic_pred, reference = data_test$isbot, 
@@ -199,33 +199,107 @@ confusionMatrix(data = model_logistic_pred, reference = data_test$isbot,
 ```
 
 
-### Construct an SVM Classifier
+
+
+### SVM Classifier
 
 define parameters
 ```{r}
-reg_const = 0.2
+reg_const = 5
 ```
 
-
+#### SVM w/ Sigmoid Kernel
 ```{r}
-svmfit <- svm(isbot ~ ., data = data_train, 
+svmsig <- svm(isbot ~ ., data = data_train, 
               kernel = "sigmoid", 
               cost = reg_const, 
               scale = FALSE)
-svmfit
+svmsig
 ```
 
+Testing Sigmoid SVM on Training set
 ```{r}
-svmpoly <- svm(isbot ~ ., data = data_train, 
+svmsigmoid_trainpred <- predict(svmsig, data_train, type="raw")
+postResample(pred = svmsigmoid_pred, obs = data_train$isbot)
+```
+
+Testing Sigmoid SVM on the Test Set
+```{r}
+svmsigmoid_testpred <- predict(svmsig, data_test, type="raw")
+postResample(pred = svmsigmoid_pred, obs = data_test$isbot)
+```
+
+Sigmoid SVM Confusion Matrix
+```{r}
+svmsig_pred_obs <- data.frame(predicted = svmsigmoid_testpred, observed = data_test$isbot)
+confusionMatrix(data = svmsigmoid_testpred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+
+#### SVM w/ Radial Kernel
+```{r}
+svmrad <- svm(isbot ~ ., data = data_train, 
                kernel = "radial", 
                cost = reg_const, 
                scale = FALSE)
-svmpoly
+svmrad
+```
+
+Testing Sigmoid SVM on the Training Set
+```{r}
+svmrad_trainpred <- predict(svmrad, data_train, type="raw")
+postResample(pred = svmrad_pred, obs = data_train$isbot)
+```
+
+Testing Sigmoid SVM on the Test Set
+```{r}
+svmrad_testpred <- predict(svmrad, data_test, type="raw")
+postResample(pred = svmrad_testpred, obs = data_test$isbot)
+```
+
+Sigmoid SVM Confusion Matrix
+```{r}
+pred_obs <- data.frame(predicted = svmrad_testpred, observed = data_test$isbot)
+confusionMatrix(data = svmrad_testpred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+#### SVM w/ Radial Kernel - Larger regularization multiplier
+```{r}
+reg_mult = 7.5
+
+svmrad_lg <- svm(isbot ~ ., data = data_train, 
+               kernel = "radial", 
+               cost = reg_mult, 
+               scale = FALSE)
+svmrad_lg
+```
+
+Testing Sigmoid SVM on the Training Set
+```{r}
+svmradlg_trainpred <- predict(svmrad_lg, data_train, type="raw")
+postResample(pred = svmradlg_trainpred, obs = data_train$isbot)
+```
+
+Testing Sigmoid SVM on the Test Set
+```{r}
+svmradlg_testpred <- predict(svmrad_lg, data_test, type="raw")
+postResample(pred = svmradlg_testpred, obs = data_test$isbot)
+```
+
+Sigmoid SVM Confusion Matrix
+```{r}
+pred_obs <- data.frame(predicted = svmradlg_testpred, observed = data_test$isbot)
+confusionMatrix(data = svmradlg_testpred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
 ```
 
 
+#### Visualize SVM classifier
 ```{r}
-plot(svmfit, data_train, friendsCount ~ retweetsCount)
+plot(svmrad_lg, data_train, listedCount ~ followersCount,
+     xlim=c(0,1500), ylim=c(0,50000))
 ```
 
 
