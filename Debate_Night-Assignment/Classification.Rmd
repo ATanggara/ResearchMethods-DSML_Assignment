@@ -100,15 +100,6 @@ dataset$user_id <- NULL
 Visualize distribution of "botscore" (only rows with numeric value assigned)
 ```{r}
 bs <- dataset$botscore
-
-# remove rows with no numeric value assigned
-toDel <- which(bs == "deleted")
-bs <- bs[-toDel]
-toDel <- which(bs == "suspended")
-bs <- bs[-toDel]
-toDel <- which(bs == "protected")
-bs <- bs[-toDel]
-
 bs <- as.numeric(bs) #convert data to numeric
 hist(bs, main="'botscore' distribution")
 ```
@@ -145,7 +136,7 @@ create correlation matrix
 ```{r}
 cor(numdata)
 ```
-'botscore' highest correlation is with 'friendsCount', 'followersCount', and 'listedCount'.
+'botscore' highest correlation is with 'friendsCount', 'retweetsCount', and 'listedCount'.
 
 
 ### Create classification Target
@@ -177,6 +168,7 @@ data_test <- dataset[(split_point+1):nrow(dataset),]
 
 ### Construct a Logistic Regression Classifier
 
+construct trainControl object
 ```{r}
 train_control <- trainControl(
   method = "repeatedcv",
@@ -184,7 +176,10 @@ train_control <- trainControl(
   repeats = 10,
   returnResamp = "all"
 )
+```
 
+
+```{r}
 model_logistic <- train(isbot ~ ., data = data_train, 
                         method = "glm", family="binomial", trControl = train_control)
 model_logistic
@@ -196,7 +191,7 @@ model_logistic_pred <- predict(model_logistic, data_test, type="raw")
 postResample(pred = model_logistic_pred, obs = data_test$isbot)
 ```
 
-Confusion Matrix
+#### Confusion Matrix
 ```{r}
 pred_obs <- data.frame(predicted = model_logistic_pred, observed = data_test$isbot)
 confusionMatrix(data = model_logistic_pred, reference = data_test$isbot, 
@@ -206,13 +201,31 @@ confusionMatrix(data = model_logistic_pred, reference = data_test$isbot,
 
 ### Construct an SVM Classifier
 
+define parameters
 ```{r}
-svmfit <- svm(isbot ~ ., data = data_train, kernel = "sigmoid", cost = 0.2, scale = FALSE)
+reg_const = 0.2
+```
+
+
+```{r}
+svmfit <- svm(isbot ~ ., data = data_train, 
+              kernel = "sigmoid", 
+              cost = reg_const, 
+              scale = FALSE)
 svmfit
 ```
 
 ```{r}
-plot(svmfit, data_train)
+svmpoly <- svm(isbot ~ ., data = data_train, 
+               kernel = "radial", 
+               cost = reg_const, 
+               scale = FALSE)
+svmpoly
+```
+
+
+```{r}
+plot(svmfit, data_train, friendsCount ~ retweetsCount)
 ```
 
 
