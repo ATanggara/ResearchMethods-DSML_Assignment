@@ -1,0 +1,222 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+Import libraries
+```{r}
+library(caret)
+library(dplyr)
+library(e1071)
+```
+
+
+Import dataset
+```{r}
+rawdata <- read.csv("./data/sample_users_100k.csv",sep="\t",stringsAsFactors = F)
+# summary(rawdata)
+```
+
+Create copy of dataframe
+```{r}
+dataset <- data.frame(rawdata)
+
+# randomly shuffle rows in dataset
+dataset <- dataset[sample(nrow(dataset)),]
+# dataset
+```
+
+count rows with botscore "deleted", "suspended", and "protected"
+```{r}
+bs_delt = length(which(dataset$botscore == "deleted"))
+bs_susp = length(which(dataset$botscore == "suspended"))
+bs_prot = length(which(dataset$botscore == "protected"))
+bs_remain = length(dataset$botscore)
+print(sprintf("botscore: deleted:%d, suspended:%d, protected:%d, remaining:%d", bs_delt, bs_susp, bs_prot, bs_remain- (bs_delt+bs_susp+bs_prot)))
+```
+
+
+Remove rows with botscore of NA
+```{r}
+data_feats = c(
+  'user_id',
+  'listedCount', # drop na
+  'favoritesCount', # drop na
+  'friendsCount', # drop na
+  'followersCount', # drop na
+  'verified', # convert True to 1 and False to 0; na to 0 
+  'location.objectType', # convert "place" to 1, na to 0 
+  'mcsize', # convert na to 0
+  'influence', # drop na
+  'influence_percentile', # drop na
+  'tweetsCount', # drop na
+  'retweetsCount', # drop na
+  'botscore' # drop na
+)
+
+dataset <- dataset[, data_feats]
+
+# clean verified
+dataset$verified[is.na(dataset$verified)] <- F
+dataset$verified <- dataset$verified * 1
+
+# clean location.objectType
+dataset$location.objectType[dataset$location.objectType == "place"] <- 1
+dataset$location.objectType[is.na(dataset$location.objectType)] <- 0
+dataset$location.objectType <- as.numeric(dataset$location.objectType)
+
+# clean mcsize
+dataset$mcsize[is.na(dataset$mcsize)] <- 0
+
+toDel <- which(is.na(dataset$botscore))
+dataset <- dataset[-toDel,]
+
+#remove rows with NA value
+toKeep <- rowSums(is.na(dataset)) == 0
+dataset <- dataset[toKeep, ]
+
+#remove rows with "deleted botscore"
+delrows <- which(dataset$botscore == "deleted")
+dataset <- dataset[-delrows,]
+
+# store user ID
+user_id <- dataset$user_id
+#delete user ID from dataset
+dataset$user_id <- NULL
+
+```
+
+
+Visualize distribution of "botscore" (only rows with numeric value assigned)
+```{r}
+bs <- dataset$botscore
+
+# remove rows with no numeric value assigned
+toDel <- which(bs == "deleted")
+bs <- bs[-toDel]
+toDel <- which(bs == "suspended")
+bs <- bs[-toDel]
+toDel <- which(bs == "protected")
+bs <- bs[-toDel]
+
+bs <- as.numeric(bs) #convert data to numeric
+hist(bs, main="'botscore' distribution")
+```
+
+### Correlation and Covariance matrices
+
+create dataframe with numerical features
+```{r}
+feats = c('listedCount', 'favoritesCount',
+          'friendsCount', 'followersCount', 'mcsize', 'influence',
+          'influence_percentile', 'tweetsCount', 'retweetsCount', 'botscore')
+numdata <- dataset[, feats]
+
+numdata$botscore <- as.numeric(numdata$botscore)
+todel <- which(is.na(numdata$botscore))
+numdata <- numdata[-todel,]
+todel <- which(numdata$botscore < 0)
+numdata <- numdata[-todel,]
+numdata$mcsize[is.na(numdata$mcsize)] <- 0
+
+# remove rows with NA
+toKeep <- rowSums(is.na(numdata)) == 0
+numdata <- numdata[toKeep, ]
+
+summary(numdata)
+```
+
+create covariance matrix
+```{r}
+cov(numdata)
+```
+
+create correlation matrix
+```{r}
+cor(numdata)
+```
+'botscore' highest correlation is with 'friendsCount', 'followersCount', and 'listedCount'.
+
+
+### Create classification Target
+
+Create $isbot \;\in \{0,1\}$ column based on botscore
+```{r}
+dataset$isbot <- F
+suspended <- which(dataset$botscore == "suspended")
+dataset$isbot[suspended] = T
+protected <- which(dataset$botscore == "protected")
+dataset$isbot[protected] = F
+dataset$isbot <- factor(dataset$isbot)
+
+botrows <- which(dataset$botscore > 0.5)
+dataset$isbot[botrows] = T
+
+# remove "botscore" column
+dataset$botscore <- NULL
+
+```
+
+Split Training set and Test set
+```{r}
+split_point <- 0.75*nrow(dataset)
+data_train <- dataset[1:split_point,]
+data_test <- dataset[(split_point+1):nrow(dataset),]
+```
+
+
+### Construct a Logistic Regression Classifier
+
+```{r}
+train_control <- trainControl(
+  method = "repeatedcv",
+  number = 10,
+  repeats = 10,
+  returnResamp = "all"
+)
+
+model_logistic <- train(isbot ~ ., data = data_train, 
+                        method = "glm", family="binomial", trControl = train_control)
+model_logistic
+```
+
+Testing Classifier on the Test Set
+```{r}
+model_logistic_pred <- predict(model_logistic, data_test, type="raw")
+postResample(pred = model_logistic_pred, obs = data_test$isbot)
+```
+
+Confusion Matrix
+```{r}
+pred_obs <- data.frame(predicted = model_logistic_pred, observed = data_test$isbot)
+confusionMatrix(data = model_logistic_pred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+
+### Construct an SVM Classifier
+
+```{r}
+svmfit <- svm(isbot ~ ., data = data_train, kernel = "sigmoid", cost = 0.2, scale = FALSE)
+svmfit
+```
+
+```{r}
+plot(svmfit, data_train)
+```
+
+
+### Construct a KNN Classifier
+
+
+

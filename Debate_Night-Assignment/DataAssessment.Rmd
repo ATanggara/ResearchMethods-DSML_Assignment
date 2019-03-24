@@ -25,18 +25,36 @@ dataset <- read.csv("./data/sample_users_100k.csv",sep="\t",stringsAsFactors = F
 
 # example_res <- read.csv("./data/EXAMPLE_predictions_uni1_uni2_uni3.csv",sep="\t",stringsAsFactors = F)
 # View(example_res)
+
+# View(dataset)
 ```
 
 
 Create an 'isbot' feature from 'botscore'
 ```{r}
 dataset$botscore <- as.numeric(dataset$botscore)
-classifybot <- which(dataset$botscore > 0.5)
 
+# Delete rows where botscore < 0 or botscore = NA
+toDel <- which(dataset$botscore < 0)
+dataset <- dataset[-toDel,]
+toDel <- which(is.na(dataset$botscore))
+dataset <- dataset[-toDel,]
+
+classifybot <- which(dataset$botscore > 0.5)
 dataset$isbot <- 0
 dataset$isbot[classifybot] <- 1
 
-View(dataset[, c('isbot', 'botscore')])
+# View(dataset[, c('isbot', 'botscore')])
 ```
+
+Visualize isbot
+```{r}
+barplot(table(dataset$isbot))
+```
+
+```{r}
+cov(dataset)
+```
+
 
 
