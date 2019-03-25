@@ -88,6 +88,18 @@ dataset <- dataset[toKeep, ]
 #remove rows with "deleted botscore"
 delrows <- which(dataset$botscore == "deleted")
 dataset <- dataset[-delrows,]
+protrows <- which(dataset$botscore == "protected")
+dataset$botscore[protrows] <- 0
+susrows <- which(dataset$botscore == "suspended")
+dataset$botscore[susrows] <- 0.9
+negrows <- which(dataset$botscore < 0)
+dataset <- dataset[-negrows,]
+
+dataset$botscore <- as.numeric(dataset$botscore)
+
+#remove rows with NA value
+toKeep <- rowSums(is.na(dataset)) == 0
+dataset <- dataset[toKeep, ]
 
 # store user ID
 user_id <- dataset$user_id
@@ -137,4 +149,31 @@ create correlation matrix
 cor(numdata)
 ```
 'botscore' highest correlation is with 'friendsCount', 'retweetsCount', and 'listedCount'.
+
+
+#### Split Train and Test data
+```{r}
+split_point <- 0.75*nrow(dataset)
+data_train <- dataset[1:split_point,]
+data_test <- dataset[(split_point+1):nrow(dataset),]
+```
+
+### Construct Regressor
+
+construct trainControl object
+```{r}
+regtrain_control <- trainControl(
+  method = "repeatedcv",
+  number = 10,
+  repeats = 10,
+  returnResamp = "all"
+)
+```
+
+```{r}
+linRegressor <- train(botscore ~ . , data = data_train, method = "lm", trControl = regtrain_control)
+linRegressor
+```
+
+
 

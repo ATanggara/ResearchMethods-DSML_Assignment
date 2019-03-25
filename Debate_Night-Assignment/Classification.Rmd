@@ -200,7 +200,6 @@ confusionMatrix(data = model_logistic_pred, reference = data_test$isbot,
 
 
 
-
 ### SVM Classifier
 
 define parameters
