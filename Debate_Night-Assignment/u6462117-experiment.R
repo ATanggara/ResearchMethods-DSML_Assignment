@@ -5,12 +5,13 @@ library(caret)
 library(dplyr)
 
 # load the dataset
-data_df <- read.csv("data/sample_users_100k.csv", sep="\t", stringsAsFactors = F)
+data_df <- read.csv("sample_users_100k.csv.bz2", sep="\t", stringsAsFactors = F)
 
 #ERROR: EOF within quoted string
+nrow(data_df)
+summary(data_df)
+
 ##############
-
-
 
 # make botscore numerical and correct invalid data
 data_df$botscore <- as.numeric(data_df$botscore)
