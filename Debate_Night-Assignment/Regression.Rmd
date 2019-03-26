@@ -18,6 +18,7 @@ Import libraries
 library(caret)
 library(dplyr)
 library(e1071)
+library(BBmisc) #for preprocessing
 ```
 
 
@@ -150,23 +151,51 @@ cor(numdata)
 ```
 'botscore' highest correlation is with 'friendsCount', 'retweetsCount', and 'listedCount'.
 
-Normalize data
+### Preprocess data with PCA and scaling
+
+Apply PCA
 ```{r}
-normalized_data <- normalize(x, method = "range", range = c(0, 1), on.constant = "quiet")
+# separate features and target
+target <- dataset$botscore
+features <- dataset
+features$botscore <- NULL
+
+pca <- preProcess(features, method = c("center", "scale", "pca"),
+                  thresh = 0.95, pcaComp = NULL)
+print(pca)
+transformed <- predict(pca, dataset)
+summary(transformed)
 ```
 
-Preprocess data
+normalize PCA transformed features
 ```{r}
-processed_data <- preProcess(x, method = c("pca"), thresh = 0.95, pcaComp = NULL, na.remove = TRUE, k = 5, knnSummary = mean, outcome = NULL, fudge = 0.2, numUnique = 3, verbose = FALSE, freqCut = 95/5, uniqueCut = 10, cutoff = 0.9, rangeBounds = c(0, 1), ...)
+transformed <- data.frame(transformed)
+
+# separate features and target
+target <- transformed$botscore
+features <- transformed
+features$botscore <- NULL
+
+normalized <- normalize(features, method = "range", range = c(0, 1), 
+                             on.constant = "quiet")
+
+# put together processed feature columns and target
+preprocessed <- cbind(normalized, target)
+
+# rename target variable
+colnames(preprocessed)[8] <- "botscore"
+
+summary(preprocessed)
 ```
 
 
 #### Split Train and Test data
 ```{r}
-split_point <- 0.75*nrow(dataset)
-data_train <- dataset[1:split_point,]
-data_test <- dataset[(split_point+1):nrow(dataset),]
+split_point <- 0.75*nrow(preprocessed)
+data_train <- preprocessed[1:split_point,]
+data_test <- preprocessed[(split_point+1):nrow(preprocessed),]
 ```
+
 
 ### Construct Regressor
 
@@ -199,10 +228,7 @@ layer_neurons = c(5,4)
 
 n <- names(data_train)
 
-form <- as.formula(paste("dataset$botscore ~", paste(n[!n %in% "dataset$botscore"], collapse = " + ")))
-
-nn = neuralnet(botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic",
-               linear.output = T)
+nn = neuralnet(botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic", linear.output = T)
 ```
 
 

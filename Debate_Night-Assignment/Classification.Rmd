@@ -18,6 +18,7 @@ Import libraries
 library(caret)
 library(dplyr)
 library(e1071)
+library(BBmisc) #for preprocessing
 ```
 
 
@@ -158,14 +159,44 @@ dataset$botscore <- NULL
 
 ```
 
-Normalize data
+
+### Preprocess data with PCA and scaling
+
+Apply PCA
 ```{r}
-normalized <- normalize(dataset[1:split_point,], method = "standardize", on.constant = "quiet")
+# separate features and target
+target <- dataset$isbot
+features <- dataset
+features$isbot <- NULL
+
+pca <- preProcess(features, method = c("center", "scale", "pca"),
+                  thresh = 0.95, pcaComp = NULL)
+print(pca)
+transformed <- predict(pca, dataset)
+summary(transformed)
 ```
 
-Preprocess data
+normalize PCA transformed features
 ```{r}
+transformed <- data.frame(transformed)
 
+# separate features and target
+target <- transformed$isbot
+features <- transformed
+features$isbot <- NULL
+
+normalized <- normalize(features, method = "range", range = c(0, 1), 
+                             on.constant = "quiet")
+
+# put together processed feature columns and target
+preprocessed <- cbind(target, normalized)
+
+# rename target variable
+colnames(preprocessed)[1] <- "isbot"
+
+summary(preprocessed)
+
+dataset <- preprocessed
 ```
 
 Split Training set and Test set
@@ -191,7 +222,8 @@ train_control <- trainControl(
 contruct Logistic Regression Classifier
 ```{r}
 model_logistic <- train(isbot ~ ., data = data_train, 
-                        method = "glm", family="binomial", trControl = train_control)
+                        method = "glm", family="binomial",
+                        trControl = train_control)
 model_logistic
 ```
 
@@ -212,13 +244,10 @@ confusionMatrix(data = model_logistic_pred, reference = data_test$isbot,
 
 ### SVM Classifier
 
-define parameters
-```{r}
-reg_const = 5
-```
-
 #### SVM w/ Sigmoid Kernel
 ```{r}
+reg_const = 10
+
 svmsig <- svm(isbot ~ ., data = data_train, 
               kernel = "sigmoid", 
               cost = reg_const, 
@@ -229,13 +258,13 @@ svmsig
 Testing Sigmoid SVM on Training set
 ```{r}
 svmsigmoid_trainpred <- predict(svmsig, data_train, type="raw")
-postResample(pred = svmsigmoid_pred, obs = data_train$isbot)
+postResample(pred = svmsigmoid_trainpred, obs = data_train$isbot)
 ```
 
 Testing Sigmoid SVM on the Test Set
 ```{r}
 svmsigmoid_testpred <- predict(svmsig, data_test, type="raw")
-postResample(pred = svmsigmoid_pred, obs = data_test$isbot)
+postResample(pred = svmsigmoid_testpred, obs = data_test$isbot)
 ```
 
 Sigmoid SVM Confusion Matrix
@@ -258,7 +287,7 @@ svmrad
 Testing Sigmoid SVM on the Training Set
 ```{r}
 svmrad_trainpred <- predict(svmrad, data_train, type="raw")
-postResample(pred = svmrad_pred, obs = data_train$isbot)
+postResample(pred = svmrad_trainpred, obs = data_train$isbot)
 ```
 
 Testing Sigmoid SVM on the Test Set
@@ -276,7 +305,7 @@ confusionMatrix(data = svmrad_testpred, reference = data_test$isbot,
 
 #### SVM w/ Radial Kernel - Larger regularization multiplier
 ```{r}
-reg_mult = 7.5
+reg_mult = 15
 
 svmrad_lg <- svm(isbot ~ ., data = data_train, 
                kernel = "radial", 
