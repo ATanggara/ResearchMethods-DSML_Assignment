@@ -158,6 +158,16 @@ dataset$botscore <- NULL
 
 ```
 
+Normalize data
+```{r}
+normalized <- normalize(dataset[1:split_point,], method = "standardize", on.constant = "quiet")
+```
+
+Preprocess data
+```{r}
+
+```
+
 Split Training set and Test set
 ```{r}
 split_point <- 0.75*nrow(dataset)

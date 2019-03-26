@@ -150,6 +150,16 @@ cor(numdata)
 ```
 'botscore' highest correlation is with 'friendsCount', 'retweetsCount', and 'listedCount'.
 
+Normalize data
+```{r}
+normalized_data <- normalize(x, method = "range", range = c(0, 1), on.constant = "quiet")
+```
+
+Preprocess data
+```{r}
+processed_data <- preProcess(x, method = c("pca"), thresh = 0.95, pcaComp = NULL, na.remove = TRUE, k = 5, knnSummary = mean, outcome = NULL, fudge = 0.2, numUnique = 3, verbose = FALSE, freqCut = 95/5, uniqueCut = 10, cutoff = 0.9, rangeBounds = c(0, 1), ...)
+```
+
 
 #### Split Train and Test data
 ```{r}
@@ -185,13 +195,13 @@ library(neuralnet)
 
 Train Neural net
 ```{r}
-layer_neurons = c(5,5)
+layer_neurons = c(5,4)
 
 n <- names(data_train)
 
 form <- as.formula(paste("dataset$botscore ~", paste(n[!n %in% "dataset$botscore"], collapse = " + ")))
 
-nn = neuralnet(dataset$botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic",
+nn = neuralnet(botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic",
                linear.output = T)
 ```
 
