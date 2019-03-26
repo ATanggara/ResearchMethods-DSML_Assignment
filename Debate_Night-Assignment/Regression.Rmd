@@ -176,4 +176,27 @@ linRegressor
 ```
 
 
+### Implement Artificial Neural Network
+
+Load library
+```{r}
+library(neuralnet)
+```
+
+Train Neural net
+```{r}
+layer_neurons = c(5,5)
+
+n <- names(data_train)
+
+form <- as.formula(paste("dataset$botscore ~", paste(n[!n %in% "dataset$botscore"], collapse = " + ")))
+
+nn = neuralnet(dataset$botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic",
+               linear.output = T)
+```
+
+
+
+
+
 
