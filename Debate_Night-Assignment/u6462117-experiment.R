@@ -7,9 +7,12 @@ library(dplyr)
 # load the dataset
 data_df <- read.csv("sample_users_100k.csv.bz2", sep="\t", stringsAsFactors = F)
 
-#ERROR: EOF within quoted string
 nrow(data_df)
 summary(data_df)
+
+data_df$verified <- as.factor(data_df$verified)
+table(data_df$verified)
+data_df$
 
 ##############
 
