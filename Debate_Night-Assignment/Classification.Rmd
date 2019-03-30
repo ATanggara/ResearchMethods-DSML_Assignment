@@ -35,12 +35,13 @@ summary(dataset)
 str(dataset)
 ```
 
+Some plots
 ```{r}
-plot(dataset$influence, dataset$isbot)
-plot(dataset$mcsize, dataset$isbot)
-plot(dataset$verified, dataset$isbot)
-plot(dataset$tweetsCount, dataset$isbot)
-plot(dataset)
+# plot(dataset$influence, dataset$isbot)
+# plot(dataset$mcsize, dataset$isbot)
+# plot(dataset$verified, dataset$isbot)
+# plot(dataset$tweetsCount, dataset$isbot)
+# plot(dataset)
 ```
 
 
@@ -94,17 +95,14 @@ nfeatures$isbot <- NULL
 nfeatures$verified <- NULL
 nfeatures$location.objectType <- NULL
 
-# normalized <- normalize(features, method = "range", range = c(0, 1), 
-#                              on.constant = "quiet")
-
 # scale features to mean=0 and stdev=1
 normalized <- scale(nfeatures)
 
 normalized <- cbind(ntarget,normalized, dataset$verified, dataset$location.objectType)
 # normalized <- data.frame(normalized)
 colnames(normalized)[1] <- "isbot"
-colnames(normalized)[-1] <- "location.objectType"
-colnames(normalized)[-2] <- "verified"
+colnames(normalized)[12] <- "location.objectType"
+colnames(normalized)[11] <- "verified"
 
 summary(normalized)
 ```
@@ -157,16 +155,16 @@ library(rpart)
 ```{r}
 
 # control
-treecon <- rpart.control(minsplit = 100,
-                         minbucket = 2,
-                         cp = 0.0000000001,
+treecon <- rpart.control(minsplit = 120,
+                         minbucket = 5,
+                         cp = 0.00000001,
                          xval = 25,
-                         maxdepth = 30)
+                         maxdepth = 10)
 
 # grow tree 
 fit <- rpart(isbot ~ .,
    method = "class", data = data_train,
-   parms = list( loss = matrix(c(0,3.3,1,0)), split = "gini" ),
+   parms = list( loss = matrix(c(0,7,1,0)), split = "gini" ),
    control = treecon)
 
 printcp(fit) # display the results 
@@ -202,7 +200,7 @@ plot(pfit, uniform=TRUE,
 text(pfit, use.n=TRUE, all=TRUE, cex=.8)
 ```
 
-Preiction after pruning
+Prediction after pruning
 ```{r}
 tree_pred <- predict(pfit, data_test,
                      type = "class")
@@ -211,6 +209,19 @@ pred_obs <- data.frame(predicted = tree_pred, observed = data_test$isbot)
 confusionMatrix(data = tree_pred, reference = data_test$isbot, 
                 dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
 ```
+
+
+### Random Forest
+
+```{r}
+modFit <- train(isbot ~ . , data=data_train, method="rf", prox=TRUE)
+```
+
+
+```{r}
+library(ISLR)
+```
+
 
 ### Logistic regression + Cost-sensitive
 
@@ -381,13 +392,15 @@ Preprocessing
 ```{r}
 knn_data <- normalized
 
-knn_data$isbot <- NULL
 knn_data$verified <- NULL
 knn_data$location.objectType <- NULL
 
 split_point <- 0.75*nrow(knn_data)
 knn_train <- knn_data[1:split_point,]
 knn_test <- knn_data[(split_point+1):nrow(knn_data),]
+
+# knn_data$isbot <- NULL
+
 
 summary(knn_train)
 ```
@@ -424,6 +437,7 @@ knn <- kNN(isbot ~ ., train=knn_train, test=knn_test,
 
 ##create confusion matrix
 tab <- table(knn, knn_test$isbot)
+tab
 ```
 
 

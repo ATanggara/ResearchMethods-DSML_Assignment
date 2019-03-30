@@ -26,6 +26,7 @@ print(sprintf("botscore: deleted:%d, suspended:%d, protected:%d, remaining:%d", 
 data_feats = c(
   'user_id',
   'listedCount', # drop na
+  'statusesCount',
   'favoritesCount', # drop na
   'friendsCount', # drop na
   'followersCount', # drop na
@@ -74,5 +75,7 @@ dataset$user_id <- NULL
 #remove outliers
 dataset <- dataset[-which(dataset$mcsize > 4000),]
 dataset <- dataset[-which(dataset$followersCount > 100000),]
+
+
 
 
