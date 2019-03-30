@@ -7,12 +7,11 @@ library(dplyr)
 # load the dataset
 data_df <- read.csv("sample_users_100k.csv.bz2", sep="\t", stringsAsFactors = F)
 
-nrow(data_df)
-summary(data_df)
+##nrow(data_df)   # num of rows in dataset
+##summary(data_df)   # summary of all attributes in dataset
 
 data_df$verified <- as.factor(data_df$verified)
 table(data_df$verified)
-data_df$
 
 ##############
 
@@ -49,6 +48,10 @@ data_df <- data_df[, features]
 
 # clean verified
 data_df$verified[is.na(data_df$verified)] <- F
+data_df$verified <- as.numeric(data_df$verified)
+# data_df$verified[data_df$verified == T] <- 1
+# data_df$verified[data_df$verified == F] <- 0
+#@@@ sets everything to 0?? 
 data_df$verified <- data_df$verified * 1
 
 # clean location.objectType
@@ -64,7 +67,7 @@ toKeep <- rowSums(is.na(data_df)) == 0
 data_df <- data_df[toKeep, ]
 
 # first construct a train and a test sample, each of 1000 users
-set.seed(287)
+set.seed(300)
 sample2k <- sample_n(tbl = data_df, size = 2000, replace = F)
 data_train <- sample2k[1:1000,]
 data_test <- sample2k[1001:2000,]
@@ -75,7 +78,24 @@ summary(data_train)
 ###### Caret
 plot(formula = botscore ~ psi, data = data_train)
 
-# can we train a linear model to this?
+
+############# DECISION TREE (REGRESSION) ###########
+library(rpart)
+library(rpart.plot)
+#fit <- rpart(survived~., data = data_train, method = 'anova')
+#rpart.plot(fit, extra = 106)
+#rpart(formula, data=, method='')
+
+############# RANDOM FOREST WITH CARET (ENSEMBLE CLASSIFICATION) ###########
+# bagcontrol <- trainControl(sampling="rose",method="repeatedcv", number=5, repeats=3)
+# set.seed(300)
+# #"rf" method is for training random forest  model
+# fit.rf <- train(botscore~., data=data_train, method="rf", metric=metric, trControl=bagcontrol)
+# # evaluate results on test set
+# test_set$pred <- predict(fit.rf, newdata=test_set)
+# confusionMatrix(data = test_set$pred, reference = test_set$left)
+
+############# LINEAR REGRESSION MODEL #################
 fitControl <- trainControl(
   # Repeated 5–fold CV
   method = "repeatedcv",
@@ -160,7 +180,7 @@ text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = mean, na.rm = T
 text(x = 1:ncol(ARE_df), y = apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T) - 0.03,
      labels = sprintf("%.3f", apply(X = ARE_df, MARGIN = 2, FUN = median, na.rm = T)) )
 
-# Predict with all features
+### Problem with applying all features? Predict with all features
 model_lm_2 <- train(botscore ~ ., data = data_train,
                     method = "lm", trControl = fitControl)
 # predict the outcome on a test set
