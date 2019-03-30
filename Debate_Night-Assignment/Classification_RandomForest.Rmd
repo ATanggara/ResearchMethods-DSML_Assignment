@@ -1,0 +1,150 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+### Create classification Target
+
+Create $isbot \;\in \{0,1\}$ column based on botscore
+```{r}
+dataset$isbot <- F
+suspended <- which(dataset$botscore == "suspended")
+dataset$isbot[suspended] = T
+protected <- which(dataset$botscore == "protected")
+dataset$isbot[protected] = F
+dataset$isbot <- factor(dataset$isbot)
+
+botrows <- which(dataset$botscore > 0.5)
+dataset$isbot[botrows] = T
+
+# remove "botscore" column
+dataset$botscore <- NULL
+
+summary(dataset)
+str(dataset)
+```
+
+Some plots
+```{r}
+# plot(dataset$influence, dataset$isbot)
+# plot(dataset$mcsize, dataset$isbot)
+# plot(dataset$verified, dataset$isbot)
+# plot(dataset$tweetsCount, dataset$isbot)
+# plot(dataset)
+```
+
+
+### Preprocess data with PCA
+```{r}
+# separate features and target
+target <- dataset$isbot
+features <- dataset
+features$isbot <- NULL
+
+pca <- preProcess(features, method = c("center", "scale", "pca"),
+                  thresh = 0.95, pcaComp = NULL)
+print(pca)
+pca_transformed <- predict(pca, dataset)
+
+summary(pca_transformed)
+```
+
+### Normalize by sandardizing (0 mean and 1 stdev)
+
+normalize PCA transformed features
+```{r}
+# separate features and target
+target <- dataset$isbot
+features <- dataset
+features$isbot <- NULL
+
+normalized <- normalize(features, method = "standardize", range = c(0, 1), 
+                             on.constant = "quiet")
+
+# put together processed feature columns and target
+normalized <- cbind(target, normalized)
+
+# rename target variable
+colnames(normalized)[1] <- "isbot"
+
+summary(normalized)
+```
+
+
+### normalized (scaled) dataset
+```{r}
+# separate features and target
+ntarget <- data.frame(dataset$isbot)
+nfeatures <- dataset
+
+# catdata <- as.factor(cbind(dataset$verified, dataset$location.objectType))
+
+#remove categorial and target data
+nfeatures$isbot <- NULL
+nfeatures$verified <- NULL
+nfeatures$location.objectType <- NULL
+
+# scale features to mean=0 and stdev=1
+normalized <- scale(nfeatures)
+
+normalized <- cbind(ntarget,normalized, dataset$verified, dataset$location.objectType)
+# normalized <- data.frame(normalized)
+colnames(normalized)[1] <- "isbot"
+colnames(normalized)[12] <- "location.objectType"
+colnames(normalized)[11] <- "verified"
+```
+
+
+Splitting Training set and Test set:
+determine source of preprocessing
+```{r}
+data <- sample_n(tbl=normalized, size=10000, replace=F)
+
+data$isbot <- as.character(data$isbot)
+data$isbot[which(data$isbot == T)] <- "bot"
+data$isbot[which(data$isbot == F)] <- "human"
+data$isbot <- as.factor(data$isbot)
+
+
+split_point <- 0.75*nrow(data)
+data_train <- data[1:split_point,]
+data_test <- data[(split_point+1):nrow(data),]
+```
+
+
+### Construct Random Forest
+
+```{r}
+
+fitControl <- trainControl(
+  method = "cv",
+  number = 4,
+  savePredictions = 'final',
+  classProbs = T
+)
+
+rf_weights <- ifelse(data_train$isbot == "bot",
+                     1/table(data_train$isbot[1]) * 0.7,
+                     1/table(data_train$isbot[2]) * 0.3)
+
+#Training random forest model
+model_rf <- train(isbot ~ ., data = data_train,
+      method = "rf", trControl = fitControl, tuneLength=3,
+      metric = "ROC",
+      weights = rf_weights)
+
+model_rf
+
+```
+
+```{r}
+#Predicting using random forest model
+model_rf_pred <- predict(model_rf, data_test, type="raw")
+
+pred_obs <- data.frame(predicted = model_rf_pred, observed = data_test$isbot)
+confusionMatrix(data = model_rf_pred, reference = data_test$isbot)
+```
+
+
+

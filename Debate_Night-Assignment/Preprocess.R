@@ -67,6 +67,7 @@ dataset <- dataset[toKeep, ]
 delrows <- which(dataset$botscore == "deleted")
 dataset <- dataset[-delrows,]
 
+
 # store user ID
 user_id <- dataset$user_id
 #delete user ID from dataset
