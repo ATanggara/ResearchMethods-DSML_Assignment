@@ -211,11 +211,72 @@ confusionMatrix(data = tree_pred, reference = data_test$isbot,
 ```
 
 
-### Random Forest
+### Adaboost
 
 ```{r}
-modFit <- train(isbot ~ . , data=data_train, method="rf", prox=TRUE)
+library(fastAdaboost)
 ```
+
+
+```{r}
+modFit <- train(form = isbot ~ . ,
+                nIter=20 , data=data_train, method="adaboost")
+
+```
+
+### GBM boosting
+
+```{r}
+library(gbm)
+```
+
+```{r}
+data_train$isbot <- as.character(data_train$isbot)
+data_train$isbot[which(data_train$isbot == T)] <- "bot"
+data_train$isbot[which(data_train$isbot == F)] <- "human"
+
+data_train$isbot <- factor(data_train$isbot)
+
+gbm_control <- trainControl(method = "repeatedcv",
+                            number = 10,
+                            repeats = 10,
+                            summaryFunction = twoClassSummary,
+                            classProbs = T)
+
+model_weights <- ifelse(data_train$isbot == TRUE,
+                        (1/table(data_train$isbot)[1]) * 0.5,
+                        (1/table(data_train$isbot)[2]) * 0.5)
+
+table(data_train$isbot)
+```
+
+```{r}
+gbmFit1 <- train(isbot ~ ., data = data_train, 
+                 method = "gbm", 
+                 trControl = gbm_control,
+                 metric = "ROC",
+                 weights = model_weights,
+                 verbose = FALSE)
+gbmFit1
+```
+
+
+```{r}
+data_test$isbot <- as.character(data_test$isbot)
+data_test$isbot[which(data_test$isbot == T)] <- "bot"
+data_test$isbot[which(data_test$isbot == F)] <- "human"
+data_test$isbot <- as.factor(data_test$isbot)
+
+gbm_pred <- predict(gbmFit1, data_test, type = "raw")
+
+postResample(pred = gbm_pred, obs = data_test$isbot)
+
+gbm_obs <- data.frame(predicted = data_test, observed = data_test$isbot)
+confusionMatrix(data = gbm_pred, reference = data_test$isbot)
+```
+
+
+### a
 
 
 ```{r}
@@ -449,15 +510,30 @@ train_control <- trainControl(
   method = "repeatedcv",
   number = 10,
   repeats = 10,
-  returnResamp = "all"
+  returnResamp = "all",
+  classProbs = TRUE
 )
+
+model_weights <- ifelse(data_train$isbot == TRUE,
+                        (1/table(data_train$isbot)[1]) * 0.7,
+                        (1/table(data_train$isbot)[2]) * 0.3)
+
+
+# gbm_control <- trainControl(method = "repeatedcv",
+#                             number = 10,
+#                             repeats = 10,
+#                             summaryFunction = twoClassSummary,
+#                             classProbs = T)
+
 ```
 
 contruct Logistic Regression Classifier
 ```{r}
 model_logistic <- train(isbot ~ ., data = data_train, 
                         method = "glm", family="binomial",
-                        trControl = train_control)
+                        weights = model_weights,
+                        trControl = train_control,
+                        metric = "ROC")
 model_logistic
 ```
 

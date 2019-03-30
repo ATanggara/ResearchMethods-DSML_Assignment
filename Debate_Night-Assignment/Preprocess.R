@@ -76,6 +76,6 @@ dataset$user_id <- NULL
 dataset <- dataset[-which(dataset$mcsize > 4000),]
 dataset <- dataset[-which(dataset$followersCount > 100000),]
 
-
+datareg <- dataset
 
 
