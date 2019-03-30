@@ -75,10 +75,16 @@ str(dataset)
 sum(is.na(dataset))
 
 # first construct a train and a test sample, each of 1000 users
-set.seed(300)
-sample2k <- sample_n(tbl = dataset, size = 2000, replace = F)
-data_train <- sample2k[1:1000,]
-data_test <- sample2k[1001:2000,]
+# set.seed(300)
+# sample2k <- sample_n(tbl = dataset, size = 1000, replace = F)
+# data_train <- sample2k[1:1000,]
+# data_test <- sample2k[1001:2000,]
+
+# Section off data for training
+set.seed(100)   # setting seed to reproduce results of random sampling (shuffling rows)
+trainingRowIndex <- sample(1:nrow(data_df), 0.6*nrow(data_df)) # row indices
+data_train <- data_df[trainingRowIndex, ]   # model training data
+data_test <- data_df[-trainingRowIndex, ]   # test data
 
 print(sprintf("Our sample has %d rows", nrow(data_train)))
 summary(data_train)
