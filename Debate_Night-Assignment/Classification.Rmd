@@ -13,132 +13,6 @@ When you save the notebook, an HTML file containing the code and output will be 
 
 The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
 
-Import libraries
-```{r}
-library(caret)
-library(dplyr)
-library(e1071)
-library(BBmisc) #for preprocessing
-```
-
-
-Import dataset
-```{r}
-rawdata <- read.csv("./data/sample_users_100k.csv",sep="\t",stringsAsFactors = F)
-# summary(rawdata)
-```
-
-Create copy of dataframe
-```{r}
-dataset <- data.frame(rawdata)
-
-# randomly shuffle rows in dataset
-dataset <- dataset[sample(nrow(dataset)),]
-# dataset
-```
-
-count rows with botscore "deleted", "suspended", and "protected"
-```{r}
-bs_delt = length(which(dataset$botscore == "deleted"))
-bs_susp = length(which(dataset$botscore == "suspended"))
-bs_prot = length(which(dataset$botscore == "protected"))
-bs_remain = length(dataset$botscore)
-print(sprintf("botscore: deleted:%d, suspended:%d, protected:%d, remaining:%d", bs_delt, bs_susp, bs_prot, bs_remain- (bs_delt+bs_susp+bs_prot)))
-```
-
-
-Remove rows with botscore of NA
-```{r}
-data_feats = c(
-  'user_id',
-  'listedCount', # drop na
-  'favoritesCount', # drop na
-  'friendsCount', # drop na
-  'followersCount', # drop na
-  'verified', # convert True to 1 and False to 0; na to 0 
-  'location.objectType', # convert "place" to 1, na to 0 
-  'mcsize', # convert na to 0
-  'influence', # drop na
-  'influence_percentile', # drop na
-  'tweetsCount', # drop na
-  'retweetsCount', # drop na
-  'botscore' # drop na
-)
-
-dataset <- dataset[, data_feats]
-
-# clean verified
-dataset$verified[is.na(dataset$verified)] <- F
-dataset$verified <- dataset$verified * 1
-
-# clean location.objectType
-dataset$location.objectType[dataset$location.objectType == "place"] <- 1
-dataset$location.objectType[is.na(dataset$location.objectType)] <- 0
-dataset$location.objectType <- as.numeric(dataset$location.objectType)
-
-# clean mcsize
-dataset$mcsize[is.na(dataset$mcsize)] <- 0
-
-toDel <- which(is.na(dataset$botscore))
-dataset <- dataset[-toDel,]
-
-#remove rows with NA value
-toKeep <- rowSums(is.na(dataset)) == 0
-dataset <- dataset[toKeep, ]
-
-#remove rows with "deleted botscore"
-delrows <- which(dataset$botscore == "deleted")
-dataset <- dataset[-delrows,]
-
-# store user ID
-user_id <- dataset$user_id
-#delete user ID from dataset
-dataset$user_id <- NULL
-
-```
-
-
-Visualize distribution of "botscore" (only rows with numeric value assigned)
-```{r}
-bs <- dataset$botscore
-bs <- as.numeric(bs) #convert data to numeric
-hist(bs, main="'botscore' distribution")
-```
-
-### Correlation and Covariance matrices
-
-create dataframe with numerical features
-```{r}
-feats = c('listedCount', 'favoritesCount',
-          'friendsCount', 'followersCount', 'mcsize', 'influence',
-          'influence_percentile', 'tweetsCount', 'retweetsCount', 'botscore')
-numdata <- dataset[, feats]
-
-numdata$botscore <- as.numeric(numdata$botscore)
-todel <- which(is.na(numdata$botscore))
-numdata <- numdata[-todel,]
-todel <- which(numdata$botscore < 0)
-numdata <- numdata[-todel,]
-numdata$mcsize[is.na(numdata$mcsize)] <- 0
-
-# remove rows with NA
-toKeep <- rowSums(is.na(numdata)) == 0
-numdata <- numdata[toKeep, ]
-
-summary(numdata)
-```
-
-create covariance matrix
-```{r}
-cov(numdata)
-```
-
-create correlation matrix
-```{r}
-cor(numdata)
-```
-'botscore' highest correlation is with 'friendsCount', 'retweetsCount', and 'listedCount'.
-
 
 ### Create classification Target
 
@@ -157,12 +31,20 @@ dataset$isbot[botrows] = T
 # remove "botscore" column
 dataset$botscore <- NULL
 
+summary(dataset)
+str(dataset)
+```
+
+```{r}
+plot(dataset$influence, dataset$isbot)
+plot(dataset$mcsize, dataset$isbot)
+plot(dataset$verified, dataset$isbot)
+plot(dataset$tweetsCount, dataset$isbot)
+plot(dataset)
 ```
 
 
-### Preprocess data with PCA and scaling
-
-Apply PCA
+### Preprocess data with PCA
 ```{r}
 # separate features and target
 target <- dataset$isbot
@@ -172,38 +54,376 @@ features$isbot <- NULL
 pca <- preProcess(features, method = c("center", "scale", "pca"),
                   thresh = 0.95, pcaComp = NULL)
 print(pca)
-transformed <- predict(pca, dataset)
-summary(transformed)
+pca_transformed <- predict(pca, dataset)
+
+summary(pca_transformed)
 ```
+
+### Normalize by sandardizing (0 mean and 1 stdev)
 
 normalize PCA transformed features
 ```{r}
-transformed <- data.frame(transformed)
-
 # separate features and target
-target <- transformed$isbot
-features <- transformed
+target <- dataset$isbot
+features <- dataset
 features$isbot <- NULL
 
-normalized <- normalize(features, method = "range", range = c(0, 1), 
+normalized <- normalize(features, method = "standardize", range = c(0, 1), 
                              on.constant = "quiet")
 
 # put together processed feature columns and target
-preprocessed <- cbind(target, normalized)
+normalized <- cbind(target, normalized)
 
 # rename target variable
-colnames(preprocessed)[1] <- "isbot"
+colnames(normalized)[1] <- "isbot"
 
-summary(preprocessed)
-
-dataset <- preprocessed
+summary(normalized)
 ```
 
-Split Training set and Test set
+
+### normalized (scaled) dataset
 ```{r}
-split_point <- 0.75*nrow(dataset)
-data_train <- dataset[1:split_point,]
-data_test <- dataset[(split_point+1):nrow(dataset),]
+# separate features and target
+ntarget <- data.frame(dataset$isbot)
+nfeatures <- dataset
+
+# catdata <- as.factor(cbind(dataset$verified, dataset$location.objectType))
+
+#remove categorial and target data
+nfeatures$isbot <- NULL
+nfeatures$verified <- NULL
+nfeatures$location.objectType <- NULL
+
+# normalized <- normalize(features, method = "range", range = c(0, 1), 
+#                              on.constant = "quiet")
+
+# scale features to mean=0 and stdev=1
+normalized <- scale(nfeatures)
+
+normalized <- cbind(ntarget,normalized, dataset$verified, dataset$location.objectType)
+# normalized <- data.frame(normalized)
+colnames(normalized)[1] <- "isbot"
+colnames(normalized)[-1] <- "location.objectType"
+colnames(normalized)[-2] <- "verified"
+
+summary(normalized)
+```
+
+
+Splitting Training set and Test set:
+determine source of preprocessing
+```{r}
+data <- normalized
+split_point <- 0.75*nrow(data)
+data_train <- data[1:split_point,]
+data_test <- data[(split_point+1):nrow(data),]
+```
+
+
+### Dataset Balancing
+
+```{r}
+library(ROSE)
+library(rpart)
+```
+
+```{r}
+table(data_train$isbot)
+treeimb <- rpart(isbot ~ ., data = data_train)
+treeimb
+pred_treeimb <- predict(treeimb, newdata = data_test, threshold = 0.1)
+accuracy.meas(data_test$isbot, pred.treeimb[,2])
+```
+
+```{r}
+data_balanced_over <- ovun.sample(isbot ~ ., data = data_train, method = "over",N = 70000)$data
+table(data_balanced_over$cls)
+```
+
+
+### Penalized SVM
+
+```{r}
+library(penalizedSVM)
+```
+
+
+### Decision Tree
+
+```{r}
+library(rpart)
+```
+
+```{r}
+
+# control
+treecon <- rpart.control(minsplit = 100,
+                         minbucket = 2,
+                         cp = 0.0000000001,
+                         xval = 25,
+                         maxdepth = 30)
+
+# grow tree 
+fit <- rpart(isbot ~ .,
+   method = "class", data = data_train,
+   parms = list( loss = matrix(c(0,3.3,1,0)), split = "gini" ),
+   control = treecon)
+
+printcp(fit) # display the results 
+plotcp(fit) # visualize cross-validation results 
+summary(fit) # detailed summary of splits
+
+# plot tree 
+# plot(fit, uniform=TRUE,
+#    main="Classification Tree")
+# text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+```
+
+Prediction before pruning
+```{r}
+tree_pred <- predict(fit, data_test,
+                     type = "class")
+  
+pred_obs <- data.frame(predicted = tree_pred, observed = data_test$isbot)
+confusionMatrix(data = tree_pred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+Tree Pruning
+```{r}
+# prune the tree 
+pfit <- prune(fit,
+              cp=0.00005)
+
+# plot the pruned tree 
+plot(pfit, uniform=TRUE,
+   main="Pruned Classification Tree")
+text(pfit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+Preiction after pruning
+```{r}
+tree_pred <- predict(pfit, data_test,
+                     type = "class")
+  
+pred_obs <- data.frame(predicted = tree_pred, observed = data_test$isbot)
+confusionMatrix(data = tree_pred, reference = data_test$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
+### Logistic regression + Cost-sensitive
+
+```{r}
+library(glmnet)
+```
+
+Preprocess Train and Test data
+```{r}
+y <- data_train$isbot
+y <- as.numeric(y)
+y <- y-1
+
+x <- data_train
+x$isbot <- NULL
+x <- as.matrix(x)
+
+test <- data_test
+test$isbot <- as.numeric(test$isbot)
+test$isbot <- test$isbot - 1
+```
+
+#### Train model
+```{r}
+glmnet <- glmnet(x=x, y=y, family="binomial")
+plot(glmnet)
+```
+
+```{r}
+glmnet_pred <- predict(
+  glmnet,
+  newx = test,
+  s = "lambda.1se",
+  type = "response"
+)
+
+result_df <- data.frame(
+  threshold = seq(from = 0.00, to = 1.0, by = 0.01),
+  expected_cost = rep(0, 101)
+)
+
+i <- 0
+
+for(threshold in seq(from = 0.00, to = 1.0, by = 0.01)){
+
+  i <- i + 1
+
+  prediction_v <- 1 + as.numeric(cv.glmnet_prediction_v >= threshold)
+  match_count <- sum(prediction_v == actual_v)
+  true_positive_count <- sum(
+    prediction_v * actual_v == 1
+  )
+  true_negative_count <- sum(
+    prediction_v * actual_v == 4
+  )
+  false_positive_count <- sum(prediction_v < actual_v)
+  false_negative_count <- sum(prediction_v > actual_v)
+  total_cost <-
+    false_positive_cost * false_positive_count +
+    false_negative_cost * false_negative_count
+  expected_cost <- total_cost / nrow(GermanCredit)
+  result_df$expected_cost[i] <- expected_cost
+}
+
+result_df[which(result_df$expected_cost == min(result_df$expected_cost)), ]
+```
+
+
+#### Train model with cross validation
+```{r}
+glmnet_cv <- cv.glmnet(x=x, y=y, type.measure="auc")
+plot(glmnet_cv)
+```
+
+
+```{r}
+GermanCredit <- dataset
+
+false_positive_cost <- 5
+
+false_negative_cost <- 100
+
+x <- GermanCredit
+
+x$Class <- NULL
+
+x <- as.matrix(x)
+
+y <- as.numeric(GermanCredit$Class)
+
+cv.glmnet_model <- cv.glmnet(
+  x = x,
+  y = y,
+  family = "binomial"
+)
+
+cv.glmnet_prediction_v <- predict(
+
+  cv.glmnet_model,
+
+  newx = x,
+
+  s = "lambda.1se",
+
+  type = "response"
+
+)
+
+result_df <- data.frame(
+
+  threshold = seq(from = 0.00, to = 1.0, by = 0.01),
+
+  expected_cost = rep(0, 101)
+
+)
+
+i <- 0
+
+for(threshold in seq(from = 0.00, to = 1.0, by = 0.01)){
+
+  i <- i + 1
+
+  prediction_v <- 1 + as.numeric(cv.glmnet_prediction_v >= threshold)
+
+  match_count <- sum(prediction_v == actual_v)
+
+  true_positive_count <- sum(
+
+    prediction_v * actual_v == 1
+
+  )
+
+  true_negative_count <- sum(
+
+    prediction_v * actual_v == 4
+
+  )
+
+  false_positive_count <- sum(prediction_v < actual_v)
+
+  false_negative_count <- sum(prediction_v > actual_v)
+
+  total_cost <-
+
+    false_positive_cost * false_positive_count +
+
+    false_negative_cost * false_negative_count
+
+  expected_cost <- total_cost / nrow(GermanCredit)
+
+  result_df$expected_cost[i] <- expected_cost
+
+}
+
+result_df[which(result_df$expected_cost == min(result_df$expected_cost)), ]
+```
+
+
+### KNN Classifier
+
+```{r}
+library(class)
+library(DMwR)
+```
+
+
+Preprocessing
+```{r}
+knn_data <- normalized
+
+knn_data$isbot <- NULL
+knn_data$verified <- NULL
+knn_data$location.objectType <- NULL
+
+split_point <- 0.75*nrow(knn_data)
+knn_train <- knn_data[1:split_point,]
+knn_test <- knn_data[(split_point+1):nrow(knn_data),]
+
+summary(knn_train)
+```
+
+
+```{r}
+repeats = 3
+numbers = 10
+tunel = 10
+
+set.seed(1234)
+knn_control = trainControl(method = "repeatedcv",
+                 number = numbers,
+                 repeats = repeats,
+                 classProbs = TRUE,
+                 summaryFunction = twoClassSummary)
+```
+
+```{r}
+# knn <- train(isbot ~ ., data = knn_train, method = "knn",
+#                preProcess = c("center","scale"),
+#                trControl = x,
+#                metric = "ROC",
+#                tuneLength = tunel)
+# 
+# # Summary of model
+# knn
+# plot(knn)
+```
+
+```{r}
+knn <- kNN(isbot ~ ., train=knn_train, test=knn_test,
+           k=10)
+
+##create confusion matrix
+tab <- table(knn, knn_test$isbot)
 ```
 
 
@@ -227,6 +447,8 @@ model_logistic <- train(isbot ~ ., data = data_train,
 model_logistic
 ```
 
+
+
 Testing Classifier on the Test Set
 ```{r}
 model_logistic_pred <- predict(model_logistic, data_test, type="raw")
@@ -241,15 +463,15 @@ confusionMatrix(data = model_logistic_pred, reference = data_test$isbot,
 ```
 
 
-
 ### SVM Classifier
 
-#### SVM w/ Sigmoid Kernel
+#### SVM w/ Polynomial Kernel
 ```{r}
-reg_const = 10
+reg_const = 2
 
 svmsig <- svm(isbot ~ ., data = data_train, 
-              kernel = "sigmoid", 
+              kernel = "polynomial", 
+              gamma = 0.05,
               cost = reg_const, 
               scale = FALSE)
 svmsig
@@ -260,6 +482,13 @@ Testing Sigmoid SVM on Training set
 svmsigmoid_trainpred <- predict(svmsig, data_train, type="raw")
 postResample(pred = svmsigmoid_trainpred, obs = data_train$isbot)
 ```
+
+```{r}
+svmsig_pred_obs <- data.frame(predicted = svmsigmoid_trainpred, observed = data_train$isbot)
+confusionMatrix(data = svmsigmoid_trainpred, reference = data_train$isbot, 
+                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+```
+
 
 Testing Sigmoid SVM on the Test Set
 ```{r}
@@ -277,9 +506,10 @@ confusionMatrix(data = svmsigmoid_testpred, reference = data_test$isbot,
 
 #### SVM w/ Radial Kernel
 ```{r}
+reg_const = 1
 svmrad <- svm(isbot ~ ., data = data_train, 
-               kernel = "radial", 
-               cost = reg_const, 
+               kernel = "radial",
+               cost = reg_const,
                scale = FALSE)
 svmrad
 ```
@@ -338,6 +568,25 @@ confusionMatrix(data = svmradlg_testpred, reference = data_test$isbot,
 ```{r}
 plot(svmrad_lg, data_train, listedCount ~ followersCount,
      xlim=c(0,1500), ylim=c(0,50000))
+```
+
+
+### Implement Artificial Neural Network
+
+Load library
+```{r}
+library(neuralnet)
+```
+
+Train Neural net
+```{r}
+layer_neurons = c(3,2)
+
+n <- names(data_train)
+
+nn = neuralnet(isbot ~ ., data = data_train, hidden = layer_neurons, 
+               threshold = 0.0005,act.fct = "logistic", 
+               linear.output = T, algorithm = "rprop+", learningrate = )
 ```
 
 

@@ -19,6 +19,8 @@ library(caret)
 library(dplyr)
 library(e1071)
 library(BBmisc) #for preprocessing
+
+set.seed(1)
 ```
 
 
@@ -137,7 +139,7 @@ numdata$mcsize[is.na(numdata$mcsize)] <- 0
 toKeep <- rowSums(is.na(numdata)) == 0
 numdata <- numdata[toKeep, ]
 
-summary(numdata)
+# summary(numdata)
 ```
 
 create covariance matrix
@@ -210,7 +212,7 @@ regtrain_control <- trainControl(
 ```
 
 ```{r}
-linRegressor <- train(botscore ~ . , data = data_train, method = "lm", trControl = regtrain_control)
+linRegressor <- train(botscore ~ friendsCount + retweetsCount + listedCount, data = data_train, method = "lm", trControl = regtrain_control)
 linRegressor
 ```
 
@@ -224,11 +226,13 @@ library(neuralnet)
 
 Train Neural net
 ```{r}
-layer_neurons = c(5,4)
+layer_neurons = c(3,2)
 
 n <- names(data_train)
 
-nn = neuralnet(botscore ~ . ,data = data_train, hidden = layer_neurons, act.fct = "logistic", linear.output = T)
+nn = neuralnet(botscore ~ ., data = data_train, hidden = layer_neurons, 
+               stepmax = 10000, threshold = 0.00005,act.fct = "logistic", 
+               linear.output = T, algorithm = "sag")
 ```
 
 
