@@ -18,9 +18,9 @@ data_df <- data_df[-toDel,]
 toDel <- which(is.na(data_df$botscore))
 data_df <- data_df[-toDel,]
 
-# construct the $\psi$ measure from the previous tutorial
+# construct the $\psi$ measure 
 data_df$psi <- data_df$friendsCount / (data_df$followersCount + 0.01)
-str(data_df)
+str(data_df)   # show dataset details
 
 # Deal with missing value and category variables:
 features = c(
@@ -59,20 +59,17 @@ data_df$mcsize[is.na(data_df$mcsize)] <- 0
 toKeep <- rowSums(is.na(data_df)) == 0
 data_df <- data_df[toKeep, ]
 
-# first construct a train and a test sample, each of 1000 users
-set.seed(300)
-sample2k <- sample_n(tbl = data_df, size = 2000, replace = F)
-data_train <- sample2k[1:1000,]
-data_test <- sample2k[1001:2000,]
-
-print(sprintf("Our sample has %d rows", nrow(data_train)))
-summary(data_train)
-
-#Show dataset details
-str(dataset)
+# # first construct a train and a test sample, each of 1000 users
+# set.seed(300)
+# sample2k <- sample_n(tbl = data_df, size = 2000, replace = F)
+# data_train <- sample2k[1:1000,]
+# data_test <- sample2k[1001:2000,]
+# 
+# print(sprintf("Our sample has %d rows", nrow(data_train)))
+# summary(data_train)
 
 #Any missing values?
-sum(is.na(dataset))
+sum(is.na(data_df))
 
 # first construct a train and a test sample, each of 1000 users
 # set.seed(300)
