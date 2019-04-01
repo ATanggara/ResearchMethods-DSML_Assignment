@@ -1669,7 +1669,7 @@ $(document).ready(function () {
 </style>
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("Classification_RandomForest.Rmd");
+  window.initializeSourceEmbed("Classification_C50cost.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>
@@ -1704,61 +1704,34 @@ $(document).ready(function () {
 <p>Create <span class="math inline">\(isbot \;\in \{0,1\}\)</span> column based on botscore</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZGF0YXNldCRpc2JvdCA8LSBGXG5zdXNwZW5kZWQgPC0gd2hpY2goZGF0YXNldCRib3RzY29yZSA9PSBcXHN1c3BlbmRlZFxcKVxuZGF0YXNldCRpc2JvdFtzdXNwZW5kZWRdID0gVFxucHJvdGVjdGVkIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPT0gXFxwcm90ZWN0ZWRcXClcbmRhdGFzZXQkaXNib3RbcHJvdGVjdGVkXSA9IEZcbmRhdGFzZXQkaXNib3QgPC0gZmFjdG9yKGRhdGFzZXQkaXNib3QpXG5ib3Ryb3dzIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPiAwLjUpXG5kYXRhc2V0JGlzYm90W2JvdHJvd3NdID0gVFxuIyByZW1vdmUgXFxib3RzY29yZVxcIGNvbHVtblxuZGF0YXNldCRib3RzY29yZSA8LSBOVUxMXG5zdW1tYXJ5KGRhdGFzZXQpXG5gYGBcbmBgYCJ9 -->
-<p><code>r</code>r dataset<span class="math inline">\(isbot &lt;- F suspended &lt;- which(dataset\)</span>botscore == ) dataset<span class="math inline">\(isbot[suspended] = T protected &lt;- which(dataset\)</span>botscore == ) dataset<span class="math inline">\(isbot[protected] = F dataset\)</span>isbot &lt;- factor(dataset<span class="math inline">\(isbot) botrows &lt;- which(dataset\)</span>botscore &gt; 0.5) dataset<span class="math inline">\(isbot[botrows] = T # remove \botscore\ column dataset\)</span>botscore &lt;- NULL summary(dataset)</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YXNldCRpc2JvdCA8LSBGXG5zdXNwZW5kZWQgPC0gd2hpY2goZGF0YXNldCRib3RzY29yZSA9PSBcInN1c3BlbmRlZFwiKVxuZGF0YXNldCRpc2JvdFtzdXNwZW5kZWRdID0gVFxucHJvdGVjdGVkIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPT0gXCJwcm90ZWN0ZWRcIilcbmRhdGFzZXQkaXNib3RbcHJvdGVjdGVkXSA9IEZcbmRhdGFzZXQkaXNib3QgPC0gZmFjdG9yKGRhdGFzZXQkaXNib3QpXG5cbmJvdHJvd3MgPC0gd2hpY2goZGF0YXNldCRib3RzY29yZSA+IDAuNSlcbmRhdGFzZXQkaXNib3RbYm90cm93c10gPSBUXG5cbiMgcmVtb3ZlIFwiYm90c2NvcmVcIiBjb2x1bW5cbmRhdGFzZXQkYm90c2NvcmUgPC0gTlVMTFxuXG5zdW1tYXJ5KGRhdGFzZXQpXG5zdHIoZGF0YXNldClcbmBgYCJ9 -->
+<pre class="r"><code>dataset$isbot &lt;- F
+suspended &lt;- which(dataset$botscore == &quot;suspended&quot;)
+dataset$isbot[suspended] = T
+protected &lt;- which(dataset$botscore == &quot;protected&quot;)
+dataset$isbot[protected] = F
+dataset$isbot &lt;- factor(dataset$isbot)
+
+botrows &lt;- which(dataset$botscore &gt; 0.5)
+dataset$isbot[botrows] = T
+
+# remove &quot;botscore&quot; column
+dataset$botscore &lt;- NULL
+
+summary(dataset)
+str(dataset)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICBsaXN0ZWRDb3VudCAgICAgIHN0YXR1c2VzQ291bnQgICAgIGZhdm9yaXRlc0NvdW50ICAgIGZyaWVuZHNDb3VudCAgICAgZm9sbG93ZXJzQ291bnQgICAgdmVyaWZpZWQgXG4gTWluLiAgIDogICAwLjAwICAgTWluLiAgIDogICAgICAxICAgTWluLiAgIDogICAgIDAgICBNaW4uICAgOiAgICAwLjAgICBNaW4uICAgOiAgICAwLjAgICAwOjg0OTEwICBcbiAxc3QgUXUuOiAgIDEuMDAgICAxc3QgUXUuOiAgICA3MTIgICAxc3QgUXUuOiAgIDIyOSAgIDFzdCBRdS46ICAxNjYuMCAgIDFzdCBRdS46ICAgOTEuMCAgIDE6ICA5MDggIFxuIE1lZGlhbiA6ICAgMy4wMCAgIE1lZGlhbiA6ICAgMzI4MCAgIE1lZGlhbiA6ICAxMjMwICAgTWVkaWFuIDogIDMzNC4wICAgTWVkaWFuIDogIDI2MC4wICAgICAgICAgICAgXG4gTWVhbiAgIDogIDIyLjM1ICAgTWVhbiAgIDogIDExOTEwICAgTWVhbiAgIDogIDQ5NzEgICBNZWFuICAgOiAgNjQ0LjggICBNZWFuICAgOiAgOTgzLjYgICAgICAgICAgICBcbiAzcmQgUXUuOiAgMTMuMDAgICAzcmQgUXUuOiAgMTEzNjEgICAzcmQgUXUuOiAgNDcxNyAgIDNyZCBRdS46ICA2NjUuMCAgIDNyZCBRdS46ICA2MTcuMCAgICAgICAgICAgIFxuIE1heC4gICA6NTcxOC4wMCAgIE1heC4gICA6MTc2NTY0MSAgIE1heC4gICA6ODk3MjA4ICAgTWF4LiAgIDo4NTQ3NS4wICAgTWF4LiAgIDo5NzIwMi4wICAgICAgICAgICAgXG4gbG9jYXRpb24ub2JqZWN0VHlwZSAgICAgbWNzaXplICAgICAgICAgICAgaW5mbHVlbmNlICAgICAgIGluZmx1ZW5jZV9wZXJjZW50aWxlICB0d2VldHNDb3VudCAgICAgXG4gMDoyNzQzOSAgICAgICAgICAgICBNaW4uICAgOiAgIDAuMDAwMCAgIE1pbi4gICA6ICAxLjAwMCAgIE1pbi4gICA6MC4xMTY0ICAgICAgIE1pbi4gICA6ICAwLjAwMCAgXG4gMTo1ODM3OSAgICAgICAgICAgICAxc3QgUXUuOiAgIDAuMDAwMCAgIDFzdCBRdS46ICAxLjAwMCAgIDFzdCBRdS46MC4yNDc2ICAgICAgIDFzdCBRdS46ICAwLjAwMCAgXG4gICAgICAgICAgICAgICAgICAgICBNZWRpYW4gOiAgIDAuMDAwMCAgIE1lZGlhbiA6ICAxLjAwMCAgIE1lZGlhbiA6MC40OTg4ICAgICAgIE1lZGlhbiA6ICAwLjAwMCAgXG4gICAgICAgICAgICAgICAgICAgICBNZWFuICAgOiAgIDAuNzU0NiAgIE1lYW4gICA6ICAxLjEzNSAgIE1lYW4gICA6MC40OTgzICAgICAgIE1lYW4gICA6ICAxLjcxMSAgXG4gICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOiAgIDEuMDAwMCAgIDNyZCBRdS46ICAxLjAwMiAgIDNyZCBRdS46MC43NDkwICAgICAgIDNyZCBRdS46ICAxLjAwMCAgXG4gICAgICAgICAgICAgICAgICAgICBNYXguICAgOjE2MzcuMDAwMCAgIE1heC4gICA6MTI2LjI5OSAgIE1heC4gICA6MC45OTk4ICAgICAgIE1heC4gICA6MTUzLjAwMCAgXG4gcmV0d2VldHNDb3VudCAgICAgICBpc2JvdCAgICAgIFxuIE1pbi4gICA6ICAwLjAwMCAgIEZBTFNFOjc5NjE4ICBcbiAxc3QgUXUuOiAgMS4wMDAgICBUUlVFIDogNjIwMCAgXG4gTWVkaWFuIDogIDEuMDAwICAgICAgICAgICAgICAgIFxuIE1lYW4gICA6ICAyLjg4MiAgICAgICAgICAgICAgICBcbiAzcmQgUXUuOiAgMi4wMDAgICAgICAgICAgICAgICAgXG4gTWF4LiAgIDoyNjcuMDAwICAgICAgICAgICAgICAgIFxuIn0= -->
-<pre><code>  listedCount      statusesCount     favoritesCount    friendsCount     followersCount    verified 
- Min.   :   0.00   Min.   :      1   Min.   :     0   Min.   :    0.0   Min.   :    0.0   0:84910  
- 1st Qu.:   1.00   1st Qu.:    712   1st Qu.:   229   1st Qu.:  166.0   1st Qu.:   91.0   1:  908  
- Median :   3.00   Median :   3280   Median :  1230   Median :  334.0   Median :  260.0            
- Mean   :  22.35   Mean   :  11910   Mean   :  4971   Mean   :  644.8   Mean   :  983.6            
- 3rd Qu.:  13.00   3rd Qu.:  11361   3rd Qu.:  4717   3rd Qu.:  665.0   3rd Qu.:  617.0            
- Max.   :5718.00   Max.   :1765641   Max.   :897208   Max.   :85475.0   Max.   :97202.0            
- location.objectType     mcsize            influence       influence_percentile  tweetsCount     
- 0:27439             Min.   :   0.0000   Min.   :  1.000   Min.   :0.1164       Min.   :  0.000  
- 1:58379             1st Qu.:   0.0000   1st Qu.:  1.000   1st Qu.:0.2476       1st Qu.:  0.000  
-                     Median :   0.0000   Median :  1.000   Median :0.4988       Median :  0.000  
-                     Mean   :   0.7546   Mean   :  1.135   Mean   :0.4983       Mean   :  1.711  
-                     3rd Qu.:   1.0000   3rd Qu.:  1.002   3rd Qu.:0.7490       3rd Qu.:  1.000  
-                     Max.   :1637.0000   Max.   :126.299   Max.   :0.9998       Max.   :153.000  
- retweetsCount       isbot      
- Min.   :  0.000   FALSE:79618  
- 1st Qu.:  1.000   TRUE : 6200  
- Median :  1.000                
- Mean   :  2.882                
- 3rd Qu.:  2.000                
- Max.   :267.000                </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc3RyKGRhdGFzZXQpXG5gYGBcbmBgYCJ9 -->
-<p><code>r</code>r str(dataset)</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiJ2RhdGEuZnJhbWUnOlx0ODU4MTggb2JzLiBvZiAgMTMgdmFyaWFibGVzOlxuICQgbGlzdGVkQ291bnQgICAgICAgICA6IGludCAgMTcgNSAyIDAgNCAxIDAgMiAwIDg1IC4uLlxuICQgc3RhdHVzZXNDb3VudCAgICAgICA6IGludCAgODIxIDE3MDQgNDg1IDM0MzYgMTYwOSA5MzUgMjM4IDcxNiAxNTMgNTE4MyAuLi5cbiAkIGZhdm9yaXRlc0NvdW50ICAgICAgOiBpbnQgIDExOTMgMzI5MCAxMzkgMTQyNCA0ODA1IDE4MzEgMjg3IDM2MyAxNjQgMTQxIC4uLlxuICQgZnJpZW5kc0NvdW50ICAgICAgICA6IGludCAgNjE1IDk1OSAyNTUgNDg0IDk3IDExMyAxMDMgMjEwIDE0MiAyMjMgLi4uXG4gJCBmb2xsb3dlcnNDb3VudCAgICAgIDogaW50ICA0MSA1NDMgNjYgMjQyIDM3IDczIDcwIDE4MCA1NyA5OTYgLi4uXG4gJCB2ZXJpZmllZCAgICAgICAgICAgIDogRmFjdG9yIHcvIDIgbGV2ZWxzIFxcMFxcLFxcMVxcOiAxIDEgMSAxIDEgMSAxIDEgMSAxIC4uLlxuICQgbG9jYXRpb24ub2JqZWN0VHlwZSA6IEZhY3RvciB3LyAyIGxldmVscyBcXDBcXCxcXDFcXDogMSAxIDIgMiAxIDEgMiAyIDEgMiAuLi5cbiAkIG1jc2l6ZSAgICAgICAgICAgICAgOiBudW0gIDAgMCAwIDAgMCAuLi5cbiAkIGluZmx1ZW5jZSAgICAgICAgICAgOiBudW0gIDEgMSAxIDEgMSAuLi5cbiAkIGluZmx1ZW5jZV9wZXJjZW50aWxlOiBudW0gIDAuMTE2IDAuNjE2IDAuMzkgMC42NTEgMC4zODggLi4uXG4gJCB0d2VldHNDb3VudCAgICAgICAgIDogaW50ICAwIDAgMCAwIDAgMSAxIDEgMSAzIC4uLlxuICQgcmV0d2VldHNDb3VudCAgICAgICA6IGludCAgMyAxMyAxIDEgOCAwIDAgMCAwIDAgLi4uXG4gJCBpc2JvdCAgICAgICAgICAgICAgIDogRmFjdG9yIHcvIDIgbGV2ZWxzIFxcRkFMU0VcXCxcXFRSVUVcXDogMiAxIDEgMSAxIDEgMSAxIDEgMSAuLi5cbiJ9 -->
-<pre><code>'data.frame':   85818 obs. of  13 variables:
- $ listedCount         : int  17 5 2 0 4 1 0 2 0 85 ...
- $ statusesCount       : int  821 1704 485 3436 1609 935 238 716 153 5183 ...
- $ favoritesCount      : int  1193 3290 139 1424 4805 1831 287 363 164 141 ...
- $ friendsCount        : int  615 959 255 484 97 113 103 210 142 223 ...
- $ followersCount      : int  41 543 66 242 37 73 70 180 57 996 ...
- $ verified            : Factor w/ 2 levels \0\,\1\: 1 1 1 1 1 1 1 1 1 1 ...
- $ location.objectType : Factor w/ 2 levels \0\,\1\: 1 1 2 2 1 1 2 2 1 2 ...
- $ mcsize              : num  0 0 0 0 0 ...
- $ influence           : num  1 1 1 1 1 ...
- $ influence_percentile: num  0.116 0.616 0.39 0.651 0.388 ...
- $ tweetsCount         : int  0 0 0 0 0 1 1 1 1 3 ...
- $ retweetsCount       : int  3 13 1 1 8 0 0 0 0 0 ...
- $ isbot               : Factor w/ 2 levels \FALSE\,\TRUE\: 2 1 1 1 1 1 1 1 1 1 ...</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Some plots</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBwbG90KGRhdGFzZXQkaW5mbHVlbmNlLCBkYXRhc2V0JGlzYm90KVxuIyBwbG90KGRhdGFzZXQkbWNzaXplLCBkYXRhc2V0JGlzYm90KVxuIyBwbG90KGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkaXNib3QpXG4jIHBsb3QoZGF0YXNldCR0d2VldHNDb3VudCwgZGF0YXNldCRpc2JvdClcbiMgcGxvdChkYXRhc2V0KVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r # plot(dataset<span class="math inline">\(influence, dataset\)</span>isbot) # plot(dataset<span class="math inline">\(mcsize, dataset\)</span>isbot) # plot(dataset<span class="math inline">\(verified, dataset\)</span>isbot) # plot(dataset<span class="math inline">\(tweetsCount, dataset\)</span>isbot) # plot(dataset)</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBwbG90KGRhdGFzZXQkaW5mbHVlbmNlLCBkYXRhc2V0JGlzYm90KVxuIyBwbG90KGRhdGFzZXQkbWNzaXplLCBkYXRhc2V0JGlzYm90KVxuIyBwbG90KGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkaXNib3QpXG4jIHBsb3QoZGF0YXNldCR0d2VldHNDb3VudCwgZGF0YXNldCRpc2JvdClcbiMgcGxvdChkYXRhc2V0KVxuYGBgIn0= -->
+<pre class="r"><code># plot(dataset$influence, dataset$isbot)
+# plot(dataset$mcsize, dataset$isbot)
+# plot(dataset$verified, dataset$isbot)
+# plot(dataset$tweetsCount, dataset$isbot)
+# plot(dataset)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1767,48 +1740,19 @@ $(document).ready(function () {
 <h3>Preprocess data with PCA</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG50YXJnZXQgPC0gZGF0YXNldCRpc2JvdFxuZmVhdHVyZXMgPC0gZGF0YXNldFxuZmVhdHVyZXMkaXNib3QgPC0gTlVMTFxucGNhIDwtIHByZVByb2Nlc3MoZmVhdHVyZXMsIG1ldGhvZCA9IGMoXFxjZW50ZXJcXCwgXFxzY2FsZVxcLCBcXHBjYVxcKSxcbiAgICAgICAgICAgICAgICAgIHRocmVzaCA9IDAuOTUsIHBjYUNvbXAgPSBOVUxMKVxucHJpbnQocGNhKVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r # separate features and target target &lt;- dataset<span class="math inline">\(isbot features &lt;- dataset features\)</span>isbot &lt;- NULL pca &lt;- preProcess(features, method = c(, , ), thresh = 0.95, pcaComp = NULL) print(pca)</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ3JlYXRlZCBmcm9tIDg1ODE4IHNhbXBsZXMgYW5kIDEyIHZhcmlhYmxlc1xuXG5QcmUtcHJvY2Vzc2luZzpcbiAgLSBjZW50ZXJlZCAoMTApXG4gIC0gaWdub3JlZCAoMilcbiAgLSBwcmluY2lwYWwgY29tcG9uZW50IHNpZ25hbCBleHRyYWN0aW9uICgxMClcbiAgLSBzY2FsZWQgKDEwKVxuXG5QQ0EgbmVlZGVkIDkgY29tcG9uZW50cyB0byBjYXB0dXJlIDk1IHBlcmNlbnQgb2YgdGhlIHZhcmlhbmNlXG4ifQ== -->
-<pre><code>Created from 85818 samples and 12 variables
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG50YXJnZXQgPC0gZGF0YXNldCRpc2JvdFxuZmVhdHVyZXMgPC0gZGF0YXNldFxuZmVhdHVyZXMkaXNib3QgPC0gTlVMTFxuXG5wY2EgPC0gcHJlUHJvY2VzcyhmZWF0dXJlcywgbWV0aG9kID0gYyhcImNlbnRlclwiLCBcInNjYWxlXCIsIFwicGNhXCIpLFxuICAgICAgICAgICAgICAgICAgdGhyZXNoID0gMC45NSwgcGNhQ29tcCA9IE5VTEwpXG5wcmludChwY2EpXG5wY2FfdHJhbnNmb3JtZWQgPC0gcHJlZGljdChwY2EsIGRhdGFzZXQpXG5cbnN1bW1hcnkocGNhX3RyYW5zZm9ybWVkKVxuYGBgIn0= -->
+<pre class="r"><code># separate features and target
+target &lt;- dataset$isbot
+features &lt;- dataset
+features$isbot &lt;- NULL
 
-Pre-processing:
-  - centered (10)
-  - ignored (2)
-  - principal component signal extraction (10)
-  - scaled (10)
+pca &lt;- preProcess(features, method = c(&quot;center&quot;, &quot;scale&quot;, &quot;pca&quot;),
+                  thresh = 0.95, pcaComp = NULL)
+print(pca)
+pca_transformed &lt;- predict(pca, dataset)
 
-PCA needed 9 components to capture 95 percent of the variance</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucGNhX3RyYW5zZm9ybWVkIDwtIHByZWRpY3QocGNhLCBkYXRhc2V0KVxuc3VtbWFyeShwY2FfdHJhbnNmb3JtZWQpXG5gYGBcbmBgYCJ9 -->
-<p><code>r</code>r pca_transformed &lt;- predict(pca, dataset) summary(pca_transformed)</p>
-<pre><code></code></pre>
+summary(pca_transformed)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiIHZlcmlmaWVkICBsb2NhdGlvbi5vYmplY3RUeXBlICAgaXNib3QgICAgICAgICAgICBQQzEgICAgICAgICAgICAgICAgUEMyICAgICAgICAgICAgICAgIFBDMyAgICAgICAgICBcbiAwOjg0OTEwICAgMDoyNzQzOSAgICAgICAgICAgICBGQUxTRTo3OTYxOCAgIE1pbi4gICA6IC0xLjExNzggICBNaW4uICAgOi0yNS44ODk5ICAgTWluLiAgIDotNTcuOTQ3MCAgXG4gMTogIDkwOCAgIDE6NTgzNzkgICAgICAgICAgICAgVFJVRSA6IDYyMDAgICAxc3QgUXUuOiAtMC43NDczICAgMXN0IFF1LjogLTAuMTkzNyAgIDFzdCBRdS46IC0wLjI4MzcgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTWVkaWFuIDogLTAuMzY0MiAgIE1lZGlhbiA6ICAwLjE0MzIgICBNZWRpYW4gOiAgMC4xNDc5ICBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1lYW4gICA6ICAwLjAwMDAgICBNZWFuICAgOiAgMC4wMDAwICAgTWVhbiAgIDogIDAuMDAwMCAgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOiAgMC4yMzU1ICAgM3JkIFF1LjogIDAuMzkzNCAgIDNyZCBRdS46ICAwLjUyMTAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTWF4LiAgIDoxMTEuMTQ5NiAgIE1heC4gICA6MjAxLjUxOTggICBNYXguICAgOiAyMy4yOTUzICBcbiAgICAgIFBDNCAgICAgICAgICAgICAgICAgUEM1ICAgICAgICAgICAgICAgICBQQzYgICAgICAgICAgICAgICAgIFBDNyAgICAgICAgICAgICAgICAgUEM4ICAgICAgICAgICBcbiBNaW4uICAgOi0xOS44OTk4NSAgIE1pbi4gICA6LTIwLjgxMjMxICAgTWluLiAgIDotMjcuNTY2MDcgICBNaW4uICAgOi0zMC4yMDY0NiAgIE1pbi4gICA6LTM2LjE1OTI4ICBcbiAxc3QgUXUuOiAtMC4yMDY5NCAgIDFzdCBRdS46IC0wLjE1ODk5ICAgMXN0IFF1LjogLTAuNzQ0MDEgICAxc3QgUXUuOiAtMC4xODU1NSAgIDFzdCBRdS46IC0wLjA5ODc2ICBcbiBNZWRpYW4gOiAtMC4wNzIwMiAgIE1lZGlhbiA6ICAwLjAzODk2ICAgTWVkaWFuIDogIDAuMDI0MjcgICBNZWRpYW4gOiAtMC4wMTY3OSAgIE1lZGlhbiA6IC0wLjAyODI3ICBcbiBNZWFuICAgOiAgMC4wMDAwMCAgIE1lYW4gICA6ICAwLjAwMDAwICAgTWVhbiAgIDogIDAuMDAwMDAgICBNZWFuICAgOiAgMC4wMDAwMCAgIE1lYW4gICA6ICAwLjAwMDAwICBcbiAzcmQgUXUuOiAgMC4xNTAzOCAgIDNyZCBRdS46ICAwLjE3MTQ3ICAgM3JkIFF1LjogIDAuNTg5MjkgICAzcmQgUXUuOiAgMC4xNzIxNyAgIDNyZCBRdS46ICAwLjA3ODkzICBcbiBNYXguICAgOiA3MC4xMTg4NiAgIE1heC4gICA6IDI0LjY0NzI3ICAgTWF4LiAgIDogIDguNjQwNzEgICBNYXguICAgOiAzNS45NDMwNCAgIE1heC4gICA6IDQxLjAzNzQ2ICBcbiAgICAgIFBDOSAgICAgICAgICAgXG4gTWluLiAgIDotNDYuMzA4MTMgIFxuIDFzdCBRdS46IC0wLjA2NjA5ICBcbiBNZWRpYW4gOiAgMC4wMTcyNiAgXG4gTWVhbiAgIDogIDAuMDAwMDAgIFxuIDNyZCBRdS46ICAwLjA2NjUxICBcbiBNYXguICAgOiAyMS4xNzY5MSAgXG4ifQ== -->
-<pre><code> verified  location.objectType   isbot            PC1                PC2                PC3          
- 0:84910   0:27439             FALSE:79618   Min.   : -1.1178   Min.   :-25.8899   Min.   :-57.9470  
- 1:  908   1:58379             TRUE : 6200   1st Qu.: -0.7473   1st Qu.: -0.1937   1st Qu.: -0.2837  
-                                             Median : -0.3642   Median :  0.1432   Median :  0.1479  
-                                             Mean   :  0.0000   Mean   :  0.0000   Mean   :  0.0000  
-                                             3rd Qu.:  0.2355   3rd Qu.:  0.3934   3rd Qu.:  0.5210  
-                                             Max.   :111.1496   Max.   :201.5198   Max.   : 23.2953  
-      PC4                 PC5                 PC6                 PC7                 PC8           
- Min.   :-19.89985   Min.   :-20.81231   Min.   :-27.56607   Min.   :-30.20646   Min.   :-36.15928  
- 1st Qu.: -0.20694   1st Qu.: -0.15899   1st Qu.: -0.74401   1st Qu.: -0.18555   1st Qu.: -0.09876  
- Median : -0.07202   Median :  0.03896   Median :  0.02427   Median : -0.01679   Median : -0.02827  
- Mean   :  0.00000   Mean   :  0.00000   Mean   :  0.00000   Mean   :  0.00000   Mean   :  0.00000  
- 3rd Qu.:  0.15038   3rd Qu.:  0.17147   3rd Qu.:  0.58929   3rd Qu.:  0.17217   3rd Qu.:  0.07893  
- Max.   : 70.11886   Max.   : 24.64727   Max.   :  8.64071   Max.   : 35.94304   Max.   : 41.03746  
-      PC9           
- Min.   :-46.30813  
- 1st Qu.: -0.06609  
- Median :  0.01726  
- Mean   :  0.00000  
- 3rd Qu.:  0.06651  
- Max.   : 21.17691  </code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -1817,34 +1761,23 @@ PCA needed 9 components to capture 95 percent of the variance</code></pre>
 <p>normalize PCA transformed features</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG50YXJnZXQgPC0gZGF0YXNldCRpc2JvdFxuZmVhdHVyZXMgPC0gZGF0YXNldFxuZmVhdHVyZXMkaXNib3QgPC0gTlVMTFxubm9ybWFsaXplZCA8LSBub3JtYWxpemUoZmVhdHVyZXMsIG1ldGhvZCA9IFxcc3RhbmRhcmRpemVcXCwgcmFuZ2UgPSBjKDAsIDEpLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb24uY29uc3RhbnQgPSBcXHF1aWV0XFwpXG4jIHB1dCB0b2dldGhlciBwcm9jZXNzZWQgZmVhdHVyZSBjb2x1bW5zIGFuZCB0YXJnZXRcbm5vcm1hbGl6ZWQgPC0gY2JpbmQodGFyZ2V0LCBub3JtYWxpemVkKVxuIyByZW5hbWUgdGFyZ2V0IHZhcmlhYmxlXG5jb2xuYW1lcyhub3JtYWxpemVkKVsxXSA8LSBcXGlzYm90XFxcbnN1bW1hcnkobm9ybWFsaXplZClcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r # separate features and target target &lt;- dataset<span class="math inline">\(isbot features &lt;- dataset features\)</span>isbot &lt;- NULL normalized &lt;- normalize(features, method = , range = c(0, 1), on.constant = ) # put together processed feature columns and target normalized &lt;- cbind(target, normalized) # rename target variable colnames(normalized)[1] &lt;- <br />
-summary(normalized)</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG50YXJnZXQgPC0gZGF0YXNldCRpc2JvdFxuZmVhdHVyZXMgPC0gZGF0YXNldFxuZmVhdHVyZXMkaXNib3QgPC0gTlVMTFxuXG5ub3JtYWxpemVkIDwtIG5vcm1hbGl6ZShmZWF0dXJlcywgbWV0aG9kID0gXCJzdGFuZGFyZGl6ZVwiLCByYW5nZSA9IGMoMCwgMSksIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbi5jb25zdGFudCA9IFwicXVpZXRcIilcblxuIyBwdXQgdG9nZXRoZXIgcHJvY2Vzc2VkIGZlYXR1cmUgY29sdW1ucyBhbmQgdGFyZ2V0XG5ub3JtYWxpemVkIDwtIGNiaW5kKHRhcmdldCwgbm9ybWFsaXplZClcblxuIyByZW5hbWUgdGFyZ2V0IHZhcmlhYmxlXG5jb2xuYW1lcyhub3JtYWxpemVkKVsxXSA8LSBcImlzYm90XCJcblxuc3VtbWFyeShub3JtYWxpemVkKVxuYGBgIn0= -->
+<pre class="r"><code># separate features and target
+target &lt;- dataset$isbot
+features &lt;- dataset
+features$isbot &lt;- NULL
+
+normalized &lt;- normalize(features, method = &quot;standardize&quot;, range = c(0, 1), 
+                             on.constant = &quot;quiet&quot;)
+
+# put together processed feature columns and target
+normalized &lt;- cbind(target, normalized)
+
+# rename target variable
+colnames(normalized)[1] &lt;- &quot;isbot&quot;
+
+summary(normalized)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgaXNib3QgICAgICAgIGxpc3RlZENvdW50ICAgICAgIHN0YXR1c2VzQ291bnQgICAgICBmYXZvcml0ZXNDb3VudCAgICAgIGZyaWVuZHNDb3VudCAgICAgXG4gRkFMU0U6Nzk2MTggICBNaW4uICAgOi0wLjIzNDI5ICAgTWluLiAgIDotMC40MTY0NCAgIE1pbi4gICA6LTAuNDAyNjggICBNaW4uICAgOi0wLjM5NjkwICBcbiBUUlVFIDogNjIwMCAgIDFzdCBRdS46LTAuMjIzODEgICAxc3QgUXUuOi0wLjM5MTU4ICAgMXN0IFF1LjotMC4zODQxMyAgIDFzdCBRdS46LTAuMjk0NzIgIFxuICAgICAgICAgICAgICAgTWVkaWFuIDotMC4yMDI4NSAgIE1lZGlhbiA6LTAuMzAxNzggICBNZWRpYW4gOi0wLjMwMzA0ICAgTWVkaWFuIDotMC4xOTEzMiAgXG4gICAgICAgICAgICAgICBNZWFuICAgOiAwLjAwMDAwICAgTWVhbiAgIDogMC4wMDAwMCAgIE1lYW4gICA6IDAuMDAwMDAgICBNZWFuICAgOiAwLjAwMDAwICBcbiAgICAgICAgICAgICAgIDNyZCBRdS46LTAuMDk4MDIgICAzcmQgUXUuOi0wLjAxOTIxICAgM3JkIFF1LjotMC4wMjA1OCAgIDNyZCBRdS46IDAuMDEyNDEgIFxuICAgICAgICAgICAgICAgTWF4LiAgIDo1OS43MDQ3NSAgIE1heC4gICA6NjEuMzIyMzIgICBNYXguICAgOjcyLjI3NjI4ICAgTWF4LiAgIDo1Mi4yMTI1OSAgXG4gZm9sbG93ZXJzQ291bnQgICAgIHZlcmlmaWVkICBsb2NhdGlvbi5vYmplY3RUeXBlICAgICBtY3NpemUgICAgICAgICAgICBpbmZsdWVuY2UgICAgICAgXG4gTWluLiAgIDotMC4yMzk2NyAgIDA6ODQ5MTAgICAwOjI3NDM5ICAgICAgICAgICAgIE1pbi4gICA6IC0wLjExMTA2ICAgTWluLiAgIDogLTAuMTE4OSAgXG4gMXN0IFF1LjotMC4yMTc1MCAgIDE6ICA5MDggICAxOjU4Mzc5ICAgICAgICAgICAgIDFzdCBRdS46IC0wLjExMTA2ICAgMXN0IFF1LjogLTAuMTE4OSAgXG4gTWVkaWFuIDotMC4xNzYzMSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1lZGlhbiA6IC0wLjExMTA2ICAgTWVkaWFuIDogLTAuMTE4OSAgXG4gTWVhbiAgIDogMC4wMDAwMCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1lYW4gICA6ICAwLjAwMDAwICAgTWVhbiAgIDogIDAuMDAwMCAgXG4gM3JkIFF1LjotMC4wODkzMiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDNyZCBRdS46ICAwLjAzNjExICAgM3JkIFF1LjogLTAuMTE2OSAgXG4gTWF4LiAgIDoyMy40NDYwNiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1heC4gICA6MjQwLjgxOTc3ICAgTWF4LiAgIDoxMDkuOTQ1NSAgXG4gaW5mbHVlbmNlX3BlcmNlbnRpbGUgIHR3ZWV0c0NvdW50ICAgICAgcmV0d2VldHNDb3VudCAgICBcbiBNaW4uICAgOi0xLjMzMjkyMSAgICBNaW4uICAgOi0wLjM3MDUgICBNaW4uICAgOi0wLjQwMzEgIFxuIDFzdCBRdS46LTAuODc1MTk2ICAgIDFzdCBRdS46LTAuMzcwNSAgIDFzdCBRdS46LTAuMjYzMiAgXG4gTWVkaWFuIDogMC4wMDE0NzggICAgTWVkaWFuIDotMC4zNzA1ICAgTWVkaWFuIDotMC4yNjMyICBcbiBNZWFuICAgOiAwLjAwMDAwMCAgICBNZWFuICAgOiAwLjAwMDAgICBNZWFuICAgOiAwLjAwMDAgIFxuIDNyZCBRdS46IDAuODc0ODcwICAgIDNyZCBRdS46LTAuMTU0MCAgIDNyZCBRdS46LTAuMTIzMyAgXG4gTWF4LiAgIDogMS43NTAyNDUgICAgTWF4LiAgIDozMi43NTM4ICAgTWF4LiAgIDozNi45NDcyICBcbiJ9 -->
-<pre><code>   isbot        listedCount       statusesCount      favoritesCount      friendsCount     
- FALSE:79618   Min.   :-0.23429   Min.   :-0.41644   Min.   :-0.40268   Min.   :-0.39690  
- TRUE : 6200   1st Qu.:-0.22381   1st Qu.:-0.39158   1st Qu.:-0.38413   1st Qu.:-0.29472  
-               Median :-0.20285   Median :-0.30178   Median :-0.30304   Median :-0.19132  
-               Mean   : 0.00000   Mean   : 0.00000   Mean   : 0.00000   Mean   : 0.00000  
-               3rd Qu.:-0.09802   3rd Qu.:-0.01921   3rd Qu.:-0.02058   3rd Qu.: 0.01241  
-               Max.   :59.70475   Max.   :61.32232   Max.   :72.27628   Max.   :52.21259  
- followersCount     verified  location.objectType     mcsize            influence       
- Min.   :-0.23967   0:84910   0:27439             Min.   : -0.11106   Min.   : -0.1189  
- 1st Qu.:-0.21750   1:  908   1:58379             1st Qu.: -0.11106   1st Qu.: -0.1189  
- Median :-0.17631                                 Median : -0.11106   Median : -0.1189  
- Mean   : 0.00000                                 Mean   :  0.00000   Mean   :  0.0000  
- 3rd Qu.:-0.08932                                 3rd Qu.:  0.03611   3rd Qu.: -0.1169  
- Max.   :23.44606                                 Max.   :240.81977   Max.   :109.9455  
- influence_percentile  tweetsCount      retweetsCount    
- Min.   :-1.332921    Min.   :-0.3705   Min.   :-0.4031  
- 1st Qu.:-0.875196    1st Qu.:-0.3705   1st Qu.:-0.2632  
- Median : 0.001478    Median :-0.3705   Median :-0.2632  
- Mean   : 0.000000    Mean   : 0.0000   Mean   : 0.0000  
- 3rd Qu.: 0.874870    3rd Qu.:-0.1540   3rd Qu.:-0.1233  
- Max.   : 1.750245    Max.   :32.7538   Max.   :36.9472  </code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -1852,104 +1785,91 @@ summary(normalized)</p>
 <h3>normalized (scaled) dataset</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG5udGFyZ2V0IDwtIGRhdGEuZnJhbWUoZGF0YXNldCRpc2JvdClcbm5mZWF0dXJlcyA8LSBkYXRhc2V0XG4jIGNhdGRhdGEgPC0gYXMuZmFjdG9yKGNiaW5kKGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkbG9jYXRpb24ub2JqZWN0VHlwZSkpXG4jcmVtb3ZlIGNhdGVnb3JpYWwgYW5kIHRhcmdldCBkYXRhXG5uZmVhdHVyZXMkaXNib3QgPC0gTlVMTFxubmZlYXR1cmVzJHZlcmlmaWVkIDwtIE5VTExcbm5mZWF0dXJlcyRsb2NhdGlvbi5vYmplY3RUeXBlIDwtIE5VTExcbiMgc2NhbGUgZmVhdHVyZXMgdG8gbWVhbj0wIGFuZCBzdGRldj0xXG5ub3JtYWxpemVkIDwtIHNjYWxlKG5mZWF0dXJlcylcbm5vcm1hbGl6ZWQgPC0gY2JpbmQobnRhcmdldCxub3JtYWxpemVkLCBkYXRhc2V0JHZlcmlmaWVkLCBkYXRhc2V0JGxvY2F0aW9uLm9iamVjdFR5cGUpXG4jIG5vcm1hbGl6ZWQgPC0gZGF0YS5mcmFtZShub3JtYWxpemVkKVxuY29sbmFtZXMobm9ybWFsaXplZClbMV0gPC0gXFxpc2JvdFxcXG5jb2xuYW1lcyhub3JtYWxpemVkKVsxMl0gPC0gXFxsb2NhdGlvbi5vYmplY3RUeXBlXFxcbmNvbG5hbWVzKG5vcm1hbGl6ZWQpWzExXSA8LSBcXHZlcmlmaWVkXFxcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r # separate features and target ntarget &lt;- data.frame(dataset<span class="math inline">\(isbot) nfeatures &lt;- dataset # catdata &lt;- as.factor(cbind(dataset\)</span>verified, dataset<span class="math inline">\(location.objectType)) #remove categorial and target data nfeatures\)</span>isbot &lt;- NULL nfeatures<span class="math inline">\(verified &lt;- NULL nfeatures\)</span>location.objectType &lt;- NULL # scale features to mean=0 and stdev=1 normalized &lt;- scale(nfeatures) normalized &lt;- cbind(ntarget,normalized, dataset<span class="math inline">\(verified, dataset\)</span>location.objectType) # normalized &lt;- data.frame(normalized) colnames(normalized)[1] &lt;- <br />
-colnames(normalized)[12] &lt;- .objectType<br />
-colnames(normalized)[11] &lt;- <br />
-</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0XG5udGFyZ2V0IDwtIGRhdGEuZnJhbWUoZGF0YXNldCRpc2JvdClcbm5mZWF0dXJlcyA8LSBkYXRhc2V0XG5cbiMgY2F0ZGF0YSA8LSBhcy5mYWN0b3IoY2JpbmQoZGF0YXNldCR2ZXJpZmllZCwgZGF0YXNldCRsb2NhdGlvbi5vYmplY3RUeXBlKSlcblxuI3JlbW92ZSBjYXRlZ29yaWFsIGFuZCB0YXJnZXQgZGF0YVxubmZlYXR1cmVzJGlzYm90IDwtIE5VTExcbm5mZWF0dXJlcyR2ZXJpZmllZCA8LSBOVUxMXG5uZmVhdHVyZXMkbG9jYXRpb24ub2JqZWN0VHlwZSA8LSBOVUxMXG5cbiMgc2NhbGUgZmVhdHVyZXMgdG8gbWVhbj0wIGFuZCBzdGRldj0xXG5ub3JtYWxpemVkIDwtIHNjYWxlKG5mZWF0dXJlcylcblxubm9ybWFsaXplZCA8LSBjYmluZChudGFyZ2V0LG5vcm1hbGl6ZWQsIGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkbG9jYXRpb24ub2JqZWN0VHlwZSlcbiMgbm9ybWFsaXplZCA8LSBkYXRhLmZyYW1lKG5vcm1hbGl6ZWQpXG5jb2xuYW1lcyhub3JtYWxpemVkKVsxXSA8LSBcImlzYm90XCJcbmNvbG5hbWVzKG5vcm1hbGl6ZWQpWzEyXSA8LSBcImxvY2F0aW9uLm9iamVjdFR5cGVcIlxuY29sbmFtZXMobm9ybWFsaXplZClbMTFdIDwtIFwidmVyaWZpZWRcIlxuYGBgIn0= -->
+<pre class="r"><code># separate features and target
+ntarget &lt;- data.frame(dataset$isbot)
+nfeatures &lt;- dataset
+
+# catdata &lt;- as.factor(cbind(dataset$verified, dataset$location.objectType))
+
+#remove categorial and target data
+nfeatures$isbot &lt;- NULL
+nfeatures$verified &lt;- NULL
+nfeatures$location.objectType &lt;- NULL
+
+# scale features to mean=0 and stdev=1
+normalized &lt;- scale(nfeatures)
+
+normalized &lt;- cbind(ntarget,normalized, dataset$verified, dataset$location.objectType)
+# normalized &lt;- data.frame(normalized)
+colnames(normalized)[1] &lt;- &quot;isbot&quot;
+colnames(normalized)[12] &lt;- &quot;location.objectType&quot;
+colnames(normalized)[11] &lt;- &quot;verified&quot;</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Splitting Training set and Test set: determine source of preprocessing</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZGF0YSA8LSBzYW1wbGVfbih0Ymw9bm9ybWFsaXplZCwgc2l6ZT0xMDAwMCwgcmVwbGFjZT1GKVxuZGF0YSRpc2JvdCA8LSBhcy5jaGFyYWN0ZXIoZGF0YSRpc2JvdClcbmRhdGEkaXNib3Rbd2hpY2goZGF0YSRpc2JvdCA9PSBUKV0gPC0gXFxib3RcXFxuZGF0YSRpc2JvdFt3aGljaChkYXRhJGlzYm90ID09IEYpXSA8LSBcXGh1bWFuXFxcbmRhdGEkaXNib3QgPC0gYXMuZmFjdG9yKGRhdGEkaXNib3QpXG5zcGxpdF9wb2ludCA8LSAwLjc1Km5yb3coZGF0YSlcbmRhdGFfdHJhaW4gPC0gZGF0YVsxOnNwbGl0X3BvaW50LF1cbmRhdGFfdGVzdCA8LSBkYXRhWyhzcGxpdF9wb2ludCsxKTpucm93KGRhdGEpLF1cbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r data &lt;- sample_n(tbl=normalized, size=10000, replace=F) data<span class="math inline">\(isbot &lt;- as.character(data\)</span>isbot) data<span class="math inline">\(isbot[which(data\)</span>isbot == T)] &lt;- <br />
-data<span class="math inline">\(isbot[which(data\)</span>isbot == F)] &lt;- <br />
-data<span class="math inline">\(isbot &lt;- as.factor(data\)</span>isbot) split_point &lt;- 0.75*nrow(data) data_train &lt;- data[1:split_point,] data_test &lt;- data[(split_point+1):nrow(data),]</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSA8LSBzYW1wbGVfbih0Ymw9bm9ybWFsaXplZCwgc2l6ZT0yMDAwLCByZXBsYWNlPUYpXG5cbmRhdGEkaXNib3QgPC0gYXMuY2hhcmFjdGVyKGRhdGEkaXNib3QpXG5kYXRhJGlzYm90W3doaWNoKGRhdGEkaXNib3QgPT0gVCldIDwtIFwiYm90XCJcbmRhdGEkaXNib3Rbd2hpY2goZGF0YSRpc2JvdCA9PSBGKV0gPC0gXCJodW1hblwiXG5kYXRhJGlzYm90IDwtIGFzLmZhY3RvcihkYXRhJGlzYm90KVxuXG5cbnNwbGl0X3BvaW50IDwtIDAuNzUqbnJvdyhkYXRhKVxuZGF0YV90cmFpbiA8LSBkYXRhWzE6c3BsaXRfcG9pbnQsXVxuZGF0YV90ZXN0IDwtIGRhdGFbKHNwbGl0X3BvaW50KzEpOm5yb3coZGF0YSksXVxuYGBgIn0= -->
+<pre class="r"><code>data &lt;- sample_n(tbl=normalized, size=2000, replace=F)
+
+data$isbot &lt;- as.character(data$isbot)
+data$isbot[which(data$isbot == T)] &lt;- &quot;bot&quot;
+data$isbot[which(data$isbot == F)] &lt;- &quot;human&quot;
+data$isbot &lt;- as.factor(data$isbot)
+
+
+split_point &lt;- 0.75*nrow(data)
+data_train &lt;- data[1:split_point,]
+data_test &lt;- data[(split_point+1):nrow(data),]</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="construct-random-forest" class="section level3">
-<h3>Construct Random Forest</h3>
+<div id="train-c50" class="section level3">
+<h3>Train C50</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0Q29udHJvbCA8LSB0cmFpbkNvbnRyb2woXG4gIG1ldGhvZCA9IFxcY3ZcXCxcbiAgbnVtYmVyID0gNCxcbiAgc2F2ZVByZWRpY3Rpb25zID0gJ2ZpbmFsJyxcbiAgY2xhc3NQcm9icyA9IFRcbilcbnJmX3dlaWdodHMgPC0gaWZlbHNlKGRhdGFfdHJhaW4kaXNib3QgPT0gXFxib3RcXCxcbiAgICAgICAgICAgICAgICAgICAgIDEvdGFibGUoZGF0YV90cmFpbiRpc2JvdFsxXSkgKiAwLjcsXG4gICAgICAgICAgICAgICAgICAgICAxL3RhYmxlKGRhdGFfdHJhaW4kaXNib3RbMl0pICogMC4zKVxuI1RyYWluaW5nIHJhbmRvbSBmb3Jlc3QgbW9kZWxcbm1vZGVsX3JmIDwtIHRyYWluKGlzYm90IH4gLiwgZGF0YSA9IGRhdGFfdHJhaW4sXG4gICAgICBtZXRob2QgPSBcXHJmXFwsIHRyQ29udHJvbCA9IGZpdENvbnRyb2wsIHR1bmVMZW5ndGg9MyxcbiAgICAgIG1ldHJpYyA9IFxcUk9DXFwsXG4gICAgICB3ZWlnaHRzID0gcmZfd2VpZ2h0cylcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r fitControl &lt;- trainControl( method = , number = 4, savePredictions = ‘final’, classProbs = T ) rf_weights &lt;- ifelse(data_train<span class="math inline">\(isbot == \bot\,  1/table(data_train\)</span>isbot[1]) * 0.7, 1/table(data_train$isbot[2]) * 0.3) #Training random forest model model_rf &lt;- train(isbot ~ ., data = data_train, method = , trControl = fitControl, tuneLength=3, metric = , weights = rf_weights)</p>
-<pre><code></code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5jNWN0cmwgPC0gdHJhaW5Db250cm9sKFxuICBtZXRob2QgPSBcInJlcGVhdGVkY3ZcIixcbiAgcmVwZWF0cyA9IDUsXG4gIG51bWJlciA9IDQsXG4gIGNsYXNzUHJvYnMgPSBULFxuICB2ZXJib3NlSXRlciA9IEZBTFNFXG4pXG5cbmNtdHIgPC0gbWF0cml4KGMoMCwyMDAsMSwwKSwgbnJvdz0yKVxuXG5tb2QyIDwtIHRyYWluKGlzYm90IH4gLiwgZGF0YSA9IGRhdGFfdHJhaW4sIFxuICAgICAgICAgICAgICBtZXRob2QgPSBcIkM1LjBDb3N0XCIsXG4gICAgICAgICAgICAgIHR1bmVHcmlkID0gZXhwYW5kLmdyaWQobW9kZWwgPSBcInRyZWVcIiwgd2lubm93ID0gRkFMU0UsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHJpYWxzID0gYygxOjEwLCAoMTo1KSoxMCksXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29zdCA9IGNtdHIpLFxuICAgICAgICAgICAgICB0ckNvbnRyb2wgPSBjNWN0cmwsXG4gICAgICAgICAgICAgIHZlcmJvc2UgPSBGQUxTRSlcblxubW9kMlxuYGBgIn0= -->
+<pre class="r"><code>
+c5ctrl &lt;- trainControl(
+  method = &quot;repeatedcv&quot;,
+  repeats = 5,
+  number = 4,
+  classProbs = T,
+  verboseIter = FALSE
+)
+
+cmtr &lt;- matrix(c(0,200,1,0), nrow=2)
+
+mod2 &lt;- train(isbot ~ ., data = data_train, 
+              method = &quot;C5.0Cost&quot;,
+              tuneGrid = expand.grid(model = &quot;tree&quot;, winnow = FALSE,
+                                     trials = c(1:10, (1:5)*10),
+                                     cost = cmtr),
+              trControl = c5ctrl,
+              verbose = FALSE)
+
+mod2</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiVGhlIG1ldHJpYyBcXFJPQ1xcIHdhcyBub3QgaW4gdGhlIHJlc3VsdCBzZXQuIEFjY3VyYWN5IHdpbGwgYmUgdXNlZCBpbnN0ZWFkLlxuIn0= -->
-<pre><code>The metric \ROC\ was not in the result set. Accuracy will be used instead.</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubW9kZWxfcmZcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r model_rf</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUmFuZG9tIEZvcmVzdCBcblxuNzUwMCBzYW1wbGVzXG4gIDEyIHByZWRpY3RvclxuICAgMiBjbGFzc2VzOiAnYm90JywgJ2h1bWFuJyBcblxuTm8gcHJlLXByb2Nlc3NpbmdcblJlc2FtcGxpbmc6IENyb3NzLVZhbGlkYXRlZCAoNCBmb2xkKSBcblN1bW1hcnkgb2Ygc2FtcGxlIHNpemVzOiA1NjI1LCA1NjI1LCA1NjI1LCA1NjI1IFxuUmVzYW1wbGluZyByZXN1bHRzIGFjcm9zcyB0dW5pbmcgcGFyYW1ldGVyczpcblxuICBtdHJ5ICBBY2N1cmFjeSAgIEthcHBhICAgIFxuICAgMiAgICAwLjkyOTYwMDAgIDAuMTM0MzYzNVxuICAgNyAgICAwLjkyOTIwMDAgIDAuMjEwMDEwN1xuICAxMiAgICAwLjkyOTQ2NjcgIDAuMjIyNjMyNFxuXG5BY2N1cmFjeSB3YXMgdXNlZCB0byBzZWxlY3QgdGhlIG9wdGltYWwgbW9kZWwgdXNpbmcgdGhlIGxhcmdlc3QgdmFsdWUuXG5UaGUgZmluYWwgdmFsdWUgdXNlZCBmb3IgdGhlIG1vZGVsIHdhcyBtdHJ5ID0gMi5cbiJ9 -->
-<pre><code>Random Forest 
-
-7500 samples
-  12 predictor
-   2 classes: 'bot', 'human' 
-
-No pre-processing
-Resampling: Cross-Validated (4 fold) 
-Summary of sample sizes: 5625, 5625, 5625, 5625 
-Resampling results across tuning parameters:
-
-  mtry  Accuracy   Kappa    
-   2    0.9296000  0.1343635
-   7    0.9292000  0.2100107
-  12    0.9294667  0.2226324
-
-Accuracy was used to select the optimal model using the largest value.
-The final value used for the model was mtry = 2.</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuI1ByZWRpY3RpbmcgdXNpbmcgcmFuZG9tIGZvcmVzdCBtb2RlbFxubW9kZWxfcmZfcHJlZCA8LSBwcmVkaWN0KG1vZGVsX3JmLCBkYXRhX3Rlc3QsIHR5cGU9XFxyYXdcXClcbnByZWRfb2JzIDwtIGRhdGEuZnJhbWUocHJlZGljdGVkID0gbW9kZWxfcmZfcHJlZCwgb2JzZXJ2ZWQgPSBkYXRhX3Rlc3QkaXNib3QpXG5jb25mdXNpb25NYXRyaXgoZGF0YSA9IG1vZGVsX3JmX3ByZWQsIHJlZmVyZW5jZSA9IGRhdGFfdGVzdCRpc2JvdClcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r #Predicting using random forest model model_rf_pred &lt;- predict(model_rf, data_test, type=) pred_obs &lt;- data.frame(predicted = model_rf_pred, observed = data_test<span class="math inline">\(isbot) confusionMatrix(data = model_rf_pred, reference = data_test\)</span>isbot)</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ29uZnVzaW9uIE1hdHJpeCBhbmQgU3RhdGlzdGljc1xuXG4gICAgICAgICAgUmVmZXJlbmNlXG5QcmVkaWN0aW9uICBib3QgaHVtYW5cbiAgICAgYm90ICAgICAxMiAgICAgOVxuICAgICBodW1hbiAgMTc3ICAyMzAyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgIEFjY3VyYWN5IDogMC45MjU2ICAgICAgICAgIFxuICAgICAgICAgICAgICAgICA5NSUgQ0kgOiAoMC45MTQ2LCAwLjkzNTYpXG4gICAgTm8gSW5mb3JtYXRpb24gUmF0ZSA6IDAuOTI0NCAgICAgICAgICBcbiAgICBQLVZhbHVlIFtBY2MgPiBOSVJdIDogMC40MjkxICAgICAgICAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXG4gICAgICAgICAgICAgICAgICBLYXBwYSA6IDAuMTAwNyAgICAgICAgICBcbiBNY25lbWFyJ3MgVGVzdCBQLVZhbHVlIDogPDJlLTE2ICAgICAgICAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXG4gICAgICAgICAgICBTZW5zaXRpdml0eSA6IDAuMDYzNDkgICAgICAgICBcbiAgICAgICAgICAgIFNwZWNpZmljaXR5IDogMC45OTYxMSAgICAgICAgIFxuICAgICAgICAgUG9zIFByZWQgVmFsdWUgOiAwLjU3MTQzICAgICAgICAgXG4gICAgICAgICBOZWcgUHJlZCBWYWx1ZSA6IDAuOTI4NjAgICAgICAgICBcbiAgICAgICAgICAgICBQcmV2YWxlbmNlIDogMC4wNzU2MCAgICAgICAgIFxuICAgICAgICAgRGV0ZWN0aW9uIFJhdGUgOiAwLjAwNDgwICAgICAgICAgXG4gICBEZXRlY3Rpb24gUHJldmFsZW5jZSA6IDAuMDA4NDAgICAgICAgICBcbiAgICAgIEJhbGFuY2VkIEFjY3VyYWN5IDogMC41Mjk4MCAgICAgICAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXG4gICAgICAgJ1Bvc2l0aXZlJyBDbGFzcyA6IGJvdCAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFxuIn0= -->
-<pre><code>Confusion Matrix and Statistics
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1ByZWRpY3RpbmcgdXNpbmcgcmFuZG9tIGZvcmVzdCBtb2RlbFxubW9kZWxfYzVfcHJlZCA8LSBwcmVkaWN0KG1vZDIsIGRhdGFfdGVzdCwgdHlwZT1cInJhd1wiKVxuXG5wcmVkX29icyA8LSBkYXRhLmZyYW1lKHByZWRpY3RlZCA9IG1vZGVsX2M1X3ByZWQsIG9ic2VydmVkID0gZGF0YV90ZXN0JGlzYm90KVxuY29uZnVzaW9uTWF0cml4KGRhdGEgPSBtb2RlbF9jNV9wcmVkLCByZWZlcmVuY2UgPSBkYXRhX3Rlc3QkaXNib3QpXG5gYGAifQ== -->
+<pre class="r"><code>#Predicting using random forest model
+model_c5_pred &lt;- predict(mod2, data_test, type=&quot;raw&quot;)
 
-          Reference
-Prediction  bot human
-     bot     12     9
-     human  177  2302
-                                          
-               Accuracy : 0.9256          
-                 95% CI : (0.9146, 0.9356)
-    No Information Rate : 0.9244          
-    P-Value [Acc &gt; NIR] : 0.4291          
-                                          
-                  Kappa : 0.1007          
- Mcnemar's Test P-Value : &lt;2e-16          
-                                          
-            Sensitivity : 0.06349         
-            Specificity : 0.99611         
-         Pos Pred Value : 0.57143         
-         Neg Pred Value : 0.92860         
-             Prevalence : 0.07560         
-         Detection Rate : 0.00480         
-   Detection Prevalence : 0.00840         
-      Balanced Accuracy : 0.52980         
-                                          
-       'Positive' Class : bot             
-                                          </code></pre>
-<!-- rnb-output-end -->
+pred_obs &lt;- data.frame(predicted = model_c5_pred, observed = data_test$isbot)
+confusionMatrix(data = model_c5_pred, reference = data_test$isbot)</code></pre>
+<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKCiMjIyBDcmVhdGUgY2xhc3NpZmljYXRpb24gVGFyZ2V0CgpDcmVhdGUgJGlzYm90IFw7XGluIFx7MCwxXH0kIGNvbHVtbiBiYXNlZCBvbiBib3RzY29yZQpgYGB7cn0KZGF0YXNldCRpc2JvdCA8LSBGCnN1c3BlbmRlZCA8LSB3aGljaChkYXRhc2V0JGJvdHNjb3JlID09ICJzdXNwZW5kZWQiKQpkYXRhc2V0JGlzYm90W3N1c3BlbmRlZF0gPSBUCnByb3RlY3RlZCA8LSB3aGljaChkYXRhc2V0JGJvdHNjb3JlID09ICJwcm90ZWN0ZWQiKQpkYXRhc2V0JGlzYm90W3Byb3RlY3RlZF0gPSBGCmRhdGFzZXQkaXNib3QgPC0gZmFjdG9yKGRhdGFzZXQkaXNib3QpCgpib3Ryb3dzIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPiAwLjUpCmRhdGFzZXQkaXNib3RbYm90cm93c10gPSBUCgojIHJlbW92ZSAiYm90c2NvcmUiIGNvbHVtbgpkYXRhc2V0JGJvdHNjb3JlIDwtIE5VTEwKCnN1bW1hcnkoZGF0YXNldCkKc3RyKGRhdGFzZXQpCmBgYAoKU29tZSBwbG90cwpgYGB7cn0KIyBwbG90KGRhdGFzZXQkaW5mbHVlbmNlLCBkYXRhc2V0JGlzYm90KQojIHBsb3QoZGF0YXNldCRtY3NpemUsIGRhdGFzZXQkaXNib3QpCiMgcGxvdChkYXRhc2V0JHZlcmlmaWVkLCBkYXRhc2V0JGlzYm90KQojIHBsb3QoZGF0YXNldCR0d2VldHNDb3VudCwgZGF0YXNldCRpc2JvdCkKIyBwbG90KGRhdGFzZXQpCmBgYAoKCiMjIyBQcmVwcm9jZXNzIGRhdGEgd2l0aCBQQ0EKYGBge3J9CiMgc2VwYXJhdGUgZmVhdHVyZXMgYW5kIHRhcmdldAp0YXJnZXQgPC0gZGF0YXNldCRpc2JvdApmZWF0dXJlcyA8LSBkYXRhc2V0CmZlYXR1cmVzJGlzYm90IDwtIE5VTEwKCnBjYSA8LSBwcmVQcm9jZXNzKGZlYXR1cmVzLCBtZXRob2QgPSBjKCJjZW50ZXIiLCAic2NhbGUiLCAicGNhIiksCiAgICAgICAgICAgICAgICAgIHRocmVzaCA9IDAuOTUsIHBjYUNvbXAgPSBOVUxMKQpwcmludChwY2EpCnBjYV90cmFuc2Zvcm1lZCA8LSBwcmVkaWN0KHBjYSwgZGF0YXNldCkKCnN1bW1hcnkocGNhX3RyYW5zZm9ybWVkKQpgYGAKCiMjIyBOb3JtYWxpemUgYnkgc3RhbmRhcmRpemluZyAoMCBtZWFuIGFuZCAxIHN0ZGV2KQoKbm9ybWFsaXplIFBDQSB0cmFuc2Zvcm1lZCBmZWF0dXJlcwpgYGB7cn0KIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0CnRhcmdldCA8LSBkYXRhc2V0JGlzYm90CmZlYXR1cmVzIDwtIGRhdGFzZXQKZmVhdHVyZXMkaXNib3QgPC0gTlVMTAoKbm9ybWFsaXplZCA8LSBub3JtYWxpemUoZmVhdHVyZXMsIG1ldGhvZCA9ICJzdGFuZGFyZGl6ZSIsIHJhbmdlID0gYygwLCAxKSwgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb24uY29uc3RhbnQgPSAicXVpZXQiKQoKIyBwdXQgdG9nZXRoZXIgcHJvY2Vzc2VkIGZlYXR1cmUgY29sdW1ucyBhbmQgdGFyZ2V0Cm5vcm1hbGl6ZWQgPC0gY2JpbmQodGFyZ2V0LCBub3JtYWxpemVkKQoKIyByZW5hbWUgdGFyZ2V0IHZhcmlhYmxlCmNvbG5hbWVzKG5vcm1hbGl6ZWQpWzFdIDwtICJpc2JvdCIKCnN1bW1hcnkobm9ybWFsaXplZCkKYGBgCgoKIyMjIG5vcm1hbGl6ZWQgKHNjYWxlZCkgZGF0YXNldApgYGB7cn0KIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0Cm50YXJnZXQgPC0gZGF0YS5mcmFtZShkYXRhc2V0JGlzYm90KQpuZmVhdHVyZXMgPC0gZGF0YXNldAoKIyBjYXRkYXRhIDwtIGFzLmZhY3RvcihjYmluZChkYXRhc2V0JHZlcmlmaWVkLCBkYXRhc2V0JGxvY2F0aW9uLm9iamVjdFR5cGUpKQoKI3JlbW92ZSBjYXRlZ29yaWFsIGFuZCB0YXJnZXQgZGF0YQpuZmVhdHVyZXMkaXNib3QgPC0gTlVMTApuZmVhdHVyZXMkdmVyaWZpZWQgPC0gTlVMTApuZmVhdHVyZXMkbG9jYXRpb24ub2JqZWN0VHlwZSA8LSBOVUxMCgojIHNjYWxlIGZlYXR1cmVzIHRvIG1lYW49MCBhbmQgc3RkZXY9MQpub3JtYWxpemVkIDwtIHNjYWxlKG5mZWF0dXJlcykKCm5vcm1hbGl6ZWQgPC0gY2JpbmQobnRhcmdldCxub3JtYWxpemVkLCBkYXRhc2V0JHZlcmlmaWVkLCBkYXRhc2V0JGxvY2F0aW9uLm9iamVjdFR5cGUpCiMgbm9ybWFsaXplZCA8LSBkYXRhLmZyYW1lKG5vcm1hbGl6ZWQpCmNvbG5hbWVzKG5vcm1hbGl6ZWQpWzFdIDwtICJpc2JvdCIKY29sbmFtZXMobm9ybWFsaXplZClbMTJdIDwtICJsb2NhdGlvbi5vYmplY3RUeXBlIgpjb2xuYW1lcyhub3JtYWxpemVkKVsxMV0gPC0gInZlcmlmaWVkIgpgYGAKCgpTcGxpdHRpbmcgVHJhaW5pbmcgc2V0IGFuZCBUZXN0IHNldDoKZGV0ZXJtaW5lIHNvdXJjZSBvZiBwcmVwcm9jZXNzaW5nCmBgYHtyfQpkYXRhIDwtIHNhbXBsZV9uKHRibD1ub3JtYWxpemVkLCBzaXplPTEwMDAwLCByZXBsYWNlPUYpCgpkYXRhJGlzYm90IDwtIGFzLmNoYXJhY3RlcihkYXRhJGlzYm90KQpkYXRhJGlzYm90W3doaWNoKGRhdGEkaXNib3QgPT0gVCldIDwtICJib3QiCmRhdGEkaXNib3Rbd2hpY2goZGF0YSRpc2JvdCA9PSBGKV0gPC0gImh1bWFuIgpkYXRhJGlzYm90IDwtIGFzLmZhY3RvcihkYXRhJGlzYm90KQoKCnNwbGl0X3BvaW50IDwtIDAuNzUqbnJvdyhkYXRhKQpkYXRhX3RyYWluIDwtIGRhdGFbMTpzcGxpdF9wb2ludCxdCmRhdGFfdGVzdCA8LSBkYXRhWyhzcGxpdF9wb2ludCsxKTpucm93KGRhdGEpLF0KYGBgCgoKIyMjIENvbnN0cnVjdCBSYW5kb20gRm9yZXN0CgpgYGB7cn0KCmZpdENvbnRyb2wgPC0gdHJhaW5Db250cm9sKAogIG1ldGhvZCA9ICJjdiIsCiAgbnVtYmVyID0gNCwKICBzYXZlUHJlZGljdGlvbnMgPSAnZmluYWwnLAogIGNsYXNzUHJvYnMgPSBUCikKCnJmX3dlaWdodHMgPC0gaWZlbHNlKGRhdGFfdHJhaW4kaXNib3QgPT0gImJvdCIsCiAgICAgICAgICAgICAgICAgICAgIDEvdGFibGUoZGF0YV90cmFpbiRpc2JvdFsxXSkgKiAwLjcsCiAgICAgICAgICAgICAgICAgICAgIDEvdGFibGUoZGF0YV90cmFpbiRpc2JvdFsyXSkgKiAwLjMpCgojVHJhaW5pbmcgcmFuZG9tIGZvcmVzdCBtb2RlbAptb2RlbF9yZiA8LSB0cmFpbihpc2JvdCB+IC4sIGRhdGEgPSBkYXRhX3RyYWluLAogICAgICBtZXRob2QgPSAicmYiLCB0ckNvbnRyb2wgPSBmaXRDb250cm9sLCB0dW5lTGVuZ3RoPTMsCiAgICAgIG1ldHJpYyA9ICJST0MiLAogICAgICB3ZWlnaHRzID0gcmZfd2VpZ2h0cykKCm1vZGVsX3JmCgpgYGAKCmBgYHtyfQojUHJlZGljdGluZyB1c2luZyByYW5kb20gZm9yZXN0IG1vZGVsCm1vZGVsX3JmX3ByZWQgPC0gcHJlZGljdChtb2RlbF9yZiwgZGF0YV90ZXN0LCB0eXBlPSJyYXciKQoKcHJlZF9vYnMgPC0gZGF0YS5mcmFtZShwcmVkaWN0ZWQgPSBtb2RlbF9yZl9wcmVkLCBvYnNlcnZlZCA9IGRhdGFfdGVzdCRpc2JvdCkKY29uZnVzaW9uTWF0cml4KGRhdGEgPSBtb2RlbF9yZl9wcmVkLCByZWZlcmVuY2UgPSBkYXRhX3Rlc3QkaXNib3QpCmBgYAoKCgo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKIyMjIENyZWF0ZSBjbGFzc2lmaWNhdGlvbiBUYXJnZXQKCkNyZWF0ZSAkaXNib3QgXDtcaW4gXHswLDFcfSQgY29sdW1uIGJhc2VkIG9uIGJvdHNjb3JlCmBgYHtyfQpkYXRhc2V0JGlzYm90IDwtIEYKc3VzcGVuZGVkIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPT0gInN1c3BlbmRlZCIpCmRhdGFzZXQkaXNib3Rbc3VzcGVuZGVkXSA9IFQKcHJvdGVjdGVkIDwtIHdoaWNoKGRhdGFzZXQkYm90c2NvcmUgPT0gInByb3RlY3RlZCIpCmRhdGFzZXQkaXNib3RbcHJvdGVjdGVkXSA9IEYKZGF0YXNldCRpc2JvdCA8LSBmYWN0b3IoZGF0YXNldCRpc2JvdCkKCmJvdHJvd3MgPC0gd2hpY2goZGF0YXNldCRib3RzY29yZSA+IDAuNSkKZGF0YXNldCRpc2JvdFtib3Ryb3dzXSA9IFQKCiMgcmVtb3ZlICJib3RzY29yZSIgY29sdW1uCmRhdGFzZXQkYm90c2NvcmUgPC0gTlVMTAoKc3VtbWFyeShkYXRhc2V0KQpzdHIoZGF0YXNldCkKYGBgCgpTb21lIHBsb3RzCmBgYHtyfQojIHBsb3QoZGF0YXNldCRpbmZsdWVuY2UsIGRhdGFzZXQkaXNib3QpCiMgcGxvdChkYXRhc2V0JG1jc2l6ZSwgZGF0YXNldCRpc2JvdCkKIyBwbG90KGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkaXNib3QpCiMgcGxvdChkYXRhc2V0JHR3ZWV0c0NvdW50LCBkYXRhc2V0JGlzYm90KQojIHBsb3QoZGF0YXNldCkKYGBgCgoKIyMjIFByZXByb2Nlc3MgZGF0YSB3aXRoIFBDQQpgYGB7cn0KIyBzZXBhcmF0ZSBmZWF0dXJlcyBhbmQgdGFyZ2V0CnRhcmdldCA8LSBkYXRhc2V0JGlzYm90CmZlYXR1cmVzIDwtIGRhdGFzZXQKZmVhdHVyZXMkaXNib3QgPC0gTlVMTAoKcGNhIDwtIHByZVByb2Nlc3MoZmVhdHVyZXMsIG1ldGhvZCA9IGMoImNlbnRlciIsICJzY2FsZSIsICJwY2EiKSwKICAgICAgICAgICAgICAgICAgdGhyZXNoID0gMC45NSwgcGNhQ29tcCA9IE5VTEwpCnByaW50KHBjYSkKcGNhX3RyYW5zZm9ybWVkIDwtIHByZWRpY3QocGNhLCBkYXRhc2V0KQoKc3VtbWFyeShwY2FfdHJhbnNmb3JtZWQpCmBgYAoKIyMjIE5vcm1hbGl6ZSBieSBzdGFuZGFyZGl6aW5nICgwIG1lYW4gYW5kIDEgc3RkZXYpCgpub3JtYWxpemUgUENBIHRyYW5zZm9ybWVkIGZlYXR1cmVzCmBgYHtyfQojIHNlcGFyYXRlIGZlYXR1cmVzIGFuZCB0YXJnZXQKdGFyZ2V0IDwtIGRhdGFzZXQkaXNib3QKZmVhdHVyZXMgPC0gZGF0YXNldApmZWF0dXJlcyRpc2JvdCA8LSBOVUxMCgpub3JtYWxpemVkIDwtIG5vcm1hbGl6ZShmZWF0dXJlcywgbWV0aG9kID0gInN0YW5kYXJkaXplIiwgcmFuZ2UgPSBjKDAsIDEpLCAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbi5jb25zdGFudCA9ICJxdWlldCIpCgojIHB1dCB0b2dldGhlciBwcm9jZXNzZWQgZmVhdHVyZSBjb2x1bW5zIGFuZCB0YXJnZXQKbm9ybWFsaXplZCA8LSBjYmluZCh0YXJnZXQsIG5vcm1hbGl6ZWQpCgojIHJlbmFtZSB0YXJnZXQgdmFyaWFibGUKY29sbmFtZXMobm9ybWFsaXplZClbMV0gPC0gImlzYm90IgoKc3VtbWFyeShub3JtYWxpemVkKQpgYGAKCgojIyMgbm9ybWFsaXplZCAoc2NhbGVkKSBkYXRhc2V0CmBgYHtyfQojIHNlcGFyYXRlIGZlYXR1cmVzIGFuZCB0YXJnZXQKbnRhcmdldCA8LSBkYXRhLmZyYW1lKGRhdGFzZXQkaXNib3QpCm5mZWF0dXJlcyA8LSBkYXRhc2V0CgojIGNhdGRhdGEgPC0gYXMuZmFjdG9yKGNiaW5kKGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkbG9jYXRpb24ub2JqZWN0VHlwZSkpCgojcmVtb3ZlIGNhdGVnb3JpYWwgYW5kIHRhcmdldCBkYXRhCm5mZWF0dXJlcyRpc2JvdCA8LSBOVUxMCm5mZWF0dXJlcyR2ZXJpZmllZCA8LSBOVUxMCm5mZWF0dXJlcyRsb2NhdGlvbi5vYmplY3RUeXBlIDwtIE5VTEwKCiMgc2NhbGUgZmVhdHVyZXMgdG8gbWVhbj0wIGFuZCBzdGRldj0xCm5vcm1hbGl6ZWQgPC0gc2NhbGUobmZlYXR1cmVzKQoKbm9ybWFsaXplZCA8LSBjYmluZChudGFyZ2V0LG5vcm1hbGl6ZWQsIGRhdGFzZXQkdmVyaWZpZWQsIGRhdGFzZXQkbG9jYXRpb24ub2JqZWN0VHlwZSkKIyBub3JtYWxpemVkIDwtIGRhdGEuZnJhbWUobm9ybWFsaXplZCkKY29sbmFtZXMobm9ybWFsaXplZClbMV0gPC0gImlzYm90Igpjb2xuYW1lcyhub3JtYWxpemVkKVsxMl0gPC0gImxvY2F0aW9uLm9iamVjdFR5cGUiCmNvbG5hbWVzKG5vcm1hbGl6ZWQpWzExXSA8LSAidmVyaWZpZWQiCmBgYAoKClNwbGl0dGluZyBUcmFpbmluZyBzZXQgYW5kIFRlc3Qgc2V0OgpkZXRlcm1pbmUgc291cmNlIG9mIHByZXByb2Nlc3NpbmcKYGBge3J9CmRhdGEgPC0gc2FtcGxlX24odGJsPW5vcm1hbGl6ZWQsIHNpemU9MjAwMCwgcmVwbGFjZT1GKQoKZGF0YSRpc2JvdCA8LSBhcy5jaGFyYWN0ZXIoZGF0YSRpc2JvdCkKZGF0YSRpc2JvdFt3aGljaChkYXRhJGlzYm90ID09IFQpXSA8LSAiYm90IgpkYXRhJGlzYm90W3doaWNoKGRhdGEkaXNib3QgPT0gRildIDwtICJodW1hbiIKZGF0YSRpc2JvdCA8LSBhcy5mYWN0b3IoZGF0YSRpc2JvdCkKCgpzcGxpdF9wb2ludCA8LSAwLjc1Km5yb3coZGF0YSkKZGF0YV90cmFpbiA8LSBkYXRhWzE6c3BsaXRfcG9pbnQsXQpkYXRhX3Rlc3QgPC0gZGF0YVsoc3BsaXRfcG9pbnQrMSk6bnJvdyhkYXRhKSxdCmBgYAoKCiMjIyBUcmFpbiBDNTAKCmBgYHtyfQoKYzVjdHJsIDwtIHRyYWluQ29udHJvbCgKICBtZXRob2QgPSAicmVwZWF0ZWRjdiIsCiAgcmVwZWF0cyA9IDUsCiAgbnVtYmVyID0gNCwKICBjbGFzc1Byb2JzID0gVCwKICB2ZXJib3NlSXRlciA9IEZBTFNFCikKCmNtdHIgPC0gbWF0cml4KGMoMCwyMDAsMSwwKSwgbnJvdz0yKQoKbW9kMiA8LSB0cmFpbihpc2JvdCB+IC4sIGRhdGEgPSBkYXRhX3RyYWluLCAKICAgICAgICAgICAgICBtZXRob2QgPSAiQzUuMENvc3QiLAogICAgICAgICAgICAgIHR1bmVHcmlkID0gZXhwYW5kLmdyaWQobW9kZWwgPSAidHJlZSIsIHdpbm5vdyA9IEZBTFNFLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHJpYWxzID0gYygxOjEwLCAoMTo1KSoxMCksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb3N0ID0gY210ciksCiAgICAgICAgICAgICAgdHJDb250cm9sID0gYzVjdHJsLAogICAgICAgICAgICAgIHZlcmJvc2UgPSBGQUxTRSkKCm1vZDIKYGBgCgpgYGB7cn0KI1ByZWRpY3RpbmcgdXNpbmcgcmFuZG9tIGZvcmVzdCBtb2RlbAptb2RlbF9jNV9wcmVkIDwtIHByZWRpY3QobW9kMiwgZGF0YV90ZXN0LCB0eXBlPSJyYXciKQoKcHJlZF9vYnMgPC0gZGF0YS5mcmFtZShwcmVkaWN0ZWQgPSBtb2RlbF9jNV9wcmVkLCBvYnNlcnZlZCA9IGRhdGFfdGVzdCRpc2JvdCkKY29uZnVzaW9uTWF0cml4KGRhdGEgPSBtb2RlbF9jNV9wcmVkLCByZWZlcmVuY2UgPSBkYXRhX3Rlc3QkaXNib3QpCmBgYAoK</div>
 
 
 

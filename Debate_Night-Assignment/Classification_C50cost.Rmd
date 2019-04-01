@@ -3,7 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-
 ### Create classification Target
 
 Create $isbot \;\in \{0,1\}$ column based on botscore
@@ -99,7 +98,7 @@ colnames(normalized)[11] <- "verified"
 Splitting Training set and Test set:
 determine source of preprocessing
 ```{r}
-data <- sample_n(tbl=normalized, size=10000, replace=F)
+data <- sample_n(tbl=normalized, size=2000, replace=F)
 
 data$isbot <- as.character(data$isbot)
 data$isbot[which(data$isbot == T)] <- "bot"
@@ -113,38 +112,36 @@ data_test <- data[(split_point+1):nrow(data),]
 ```
 
 
-### Construct Random Forest
+### Train C50
 
 ```{r}
 
-fitControl <- trainControl(
-  method = "cv",
+c5ctrl <- trainControl(
+  method = "repeatedcv",
+  repeats = 5,
   number = 4,
-  savePredictions = 'final',
-  classProbs = T
+  classProbs = T,
+  verboseIter = FALSE
 )
 
-rf_weights <- ifelse(data_train$isbot == "bot",
-                     1/table(data_train$isbot[1]) * 0.7,
-                     1/table(data_train$isbot[2]) * 0.3)
+cmtr <- matrix(c(0,200,1,0), nrow=2)
 
-#Training random forest model
-model_rf <- train(isbot ~ ., data = data_train,
-      method = "rf", trControl = fitControl, tuneLength=3,
-      metric = "ROC",
-      weights = rf_weights)
+mod2 <- train(isbot ~ ., data = data_train, 
+              method = "C5.0Cost",
+              tuneGrid = expand.grid(model = "tree", winnow = FALSE,
+                                     trials = c(1:10, (1:5)*10),
+                                     cost = cmtr),
+              trControl = c5ctrl,
+              verbose = FALSE)
 
-model_rf
-
+mod2
 ```
 
 ```{r}
 #Predicting using random forest model
-model_rf_pred <- predict(model_rf, data_test, type="raw")
+model_c5_pred <- predict(mod2, data_test, type="raw")
 
-pred_obs <- data.frame(predicted = model_rf_pred, observed = data_test$isbot)
-confusionMatrix(data = model_rf_pred, reference = data_test$isbot)
+pred_obs <- data.frame(predicted = model_c5_pred, observed = data_test$isbot)
+confusionMatrix(data = model_c5_pred, reference = data_test$isbot)
 ```
-
-
 

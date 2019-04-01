@@ -231,12 +231,22 @@ library(gbm)
 ```
 
 ```{r}
-data_train$isbot <- as.character(data_train$isbot)
-data_train$isbot[which(data_train$isbot == T)] <- "bot"
-data_train$isbot[which(data_train$isbot == F)] <- "human"
+gbmdata <- normalized
+gbmdata <- sample_n(tbl=gbmdata, size=5000, replace=F)
 
-data_train$isbot <- factor(data_train$isbot)
+gbmdata$isbot <- as.character(gbmdata$isbot)
+gbmdata$isbot[which(gbmdata$isbot == T)] <- "bot"
+gbmdata$isbot[which(gbmdata$isbot == F)] <- "human"
+gbmdata$isbot <- factor(gbmdata$isbot)
 
+split_point <- 0.5*nrow(gbmdata)
+data_train <- gbmdata[1:split_point,]
+data_test <- gbmdata[(split_point+1):nrow(gbmdata),]
+
+```
+
+
+```{r}
 gbm_control <- trainControl(method = "repeatedcv",
                             number = 10,
                             repeats = 10,
@@ -244,8 +254,8 @@ gbm_control <- trainControl(method = "repeatedcv",
                             classProbs = T)
 
 model_weights <- ifelse(data_train$isbot == TRUE,
-                        (1/table(data_train$isbot)[1]) * 0.5,
-                        (1/table(data_train$isbot)[2]) * 0.5)
+                        (1/table(data_train$isbot)[1]) * 0.8,
+                        (1/table(data_train$isbot)[2]) * 0.2)
 
 table(data_train$isbot)
 ```
@@ -255,18 +265,12 @@ gbmFit1 <- train(isbot ~ ., data = data_train,
                  method = "gbm", 
                  trControl = gbm_control,
                  metric = "ROC",
-                 weights = model_weights,
-                 verbose = FALSE)
+                 weights = model_weights)
 gbmFit1
 ```
 
 
 ```{r}
-data_test$isbot <- as.character(data_test$isbot)
-data_test$isbot[which(data_test$isbot == T)] <- "bot"
-data_test$isbot[which(data_test$isbot == F)] <- "human"
-data_test$isbot <- as.factor(data_test$isbot)
-
 gbm_pred <- predict(gbmFit1, data_test, type = "raw")
 
 postResample(pred = gbm_pred, obs = data_test$isbot)
@@ -468,7 +472,7 @@ summary(knn_train)
 
 
 ```{r}
-repeats = 3
+repeats = 5
 numbers = 10
 tunel = 10
 
@@ -478,18 +482,6 @@ knn_control = trainControl(method = "repeatedcv",
                  repeats = repeats,
                  classProbs = TRUE,
                  summaryFunction = twoClassSummary)
-```
-
-```{r}
-# knn <- train(isbot ~ ., data = knn_train, method = "knn",
-#                preProcess = c("center","scale"),
-#                trControl = x,
-#                metric = "ROC",
-#                tuneLength = tunel)
-# 
-# # Summary of model
-# knn
-# plot(knn)
 ```
 
 ```{r}
@@ -515,28 +507,22 @@ train_control <- trainControl(
 )
 
 model_weights <- ifelse(data_train$isbot == TRUE,
-                        (1/table(data_train$isbot)[1]) * 0.7,
-                        (1/table(data_train$isbot)[2]) * 0.3)
+                        (1/table(data_train$isbot)[1]) * 0.2,
+                        (1/table(data_train$isbot)[2]) * 0.8)
 
-
-# gbm_control <- trainControl(method = "repeatedcv",
-#                             number = 10,
-#                             repeats = 10,
-#                             summaryFunction = twoClassSummary,
-#                             classProbs = T)
 
 ```
 
 contruct Logistic Regression Classifier
 ```{r}
 model_logistic <- train(isbot ~ ., data = data_train, 
-                        method = "glm", family="binomial",
+                        method = "glm",
                         weights = model_weights,
                         trControl = train_control,
-                        metric = "ROC")
+                        metric = "ROC"
+                        )
 model_logistic
 ```
-
 
 
 Testing Classifier on the Test Set
@@ -548,8 +534,7 @@ postResample(pred = model_logistic_pred, obs = data_test$isbot)
 Logistic Regression Confusion Matrix
 ```{r}
 pred_obs <- data.frame(predicted = model_logistic_pred, observed = data_test$isbot)
-confusionMatrix(data = model_logistic_pred, reference = data_test$isbot, 
-                dnn = c("Predicted", "Observed"), positive = "TRUE", mode = "everything")
+confusionMatrix(data = model_logistic_pred, reference = data_test$isbot)
 ```
 
 
@@ -658,25 +643,6 @@ confusionMatrix(data = svmradlg_testpred, reference = data_test$isbot,
 ```{r}
 plot(svmrad_lg, data_train, listedCount ~ followersCount,
      xlim=c(0,1500), ylim=c(0,50000))
-```
-
-
-### Implement Artificial Neural Network
-
-Load library
-```{r}
-library(neuralnet)
-```
-
-Train Neural net
-```{r}
-layer_neurons = c(3,2)
-
-n <- names(data_train)
-
-nn = neuralnet(isbot ~ ., data = data_train, hidden = layer_neurons, 
-               threshold = 0.0005,act.fct = "logistic", 
-               linear.output = T, algorithm = "rprop+", learningrate = )
 ```
 
 

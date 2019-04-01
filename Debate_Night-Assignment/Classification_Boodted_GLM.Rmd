@@ -1,8 +1,7 @@
 ---
-title: "R Notebook"
+title: "Boosted GLM"
 output: html_notebook
 ---
-
 
 ### Create classification Target
 
@@ -91,15 +90,15 @@ normalized <- scale(nfeatures)
 normalized <- cbind(ntarget,normalized, dataset$verified, dataset$location.objectType)
 # normalized <- data.frame(normalized)
 colnames(normalized)[1] <- "isbot"
-colnames(normalized)[12] <- "location.objectType"
-colnames(normalized)[11] <- "verified"
+colnames(normalized)[13] <- "location.objectType"
+colnames(normalized)[12] <- "verified"
 ```
 
 
 Splitting Training set and Test set:
 determine source of preprocessing
 ```{r}
-data <- sample_n(tbl=normalized, size=10000, replace=F)
+data <- sample_n(tbl=normalized, size=2000, replace=F)
 
 data$isbot <- as.character(data$isbot)
 data$isbot[which(data$isbot == T)] <- "bot"
@@ -113,37 +112,45 @@ data_test <- data[(split_point+1):nrow(data),]
 ```
 
 
-### Construct Random Forest
+### GLM Boost control
+
+```{r}
+library(nnet)
+```
+
 
 ```{r}
 
-fitControl <- trainControl(
-  method = "cv",
-  number = 4,
-  savePredictions = 'final',
-  classProbs = T
-)
+# glmb_ctrl <- trainControl(
+#   method = "repeatedcv",
+#   repeats = 5,
+#   number = 4,
+#   classProbs = T,
+#   verboseIter = FALSE
+# )
 
-rf_weights <- ifelse(data_train$isbot == "bot",
-                     1/table(data_train$isbot[1]) * 0.7,
-                     1/table(data_train$isbot[2]) * 0.3)
+glmb_ctrl <- boost_control(mstop = 100, nu = 0.1,
+              risk = c("inbag", "oobag", "none"), stopintern = FALSE,
+              center = TRUE, trace = FALSE)
 
-#Training random forest model
-model_rf <- train(isbot ~ ., data = data_train,
-      method = "rf", trControl = fitControl, tuneLength=3,
-      metric = "ROC",
-      weights = rf_weights)
+cmtr <- matrix(c(0,20,1,0), nrow=2)
 
-model_rf
+mod2 <- train(isbot ~ ., data = data_train, 
+              method = "glmboost",
+              tuneGrid = expand.grid(mstop = c(50, 100, 150, 200, 250, 300),
+                                     prune = c('yes', 'no')),
+              trControl = c5ctrl,
+              verbose = FALSE)
 
+mod2
 ```
 
 ```{r}
 #Predicting using random forest model
-model_rf_pred <- predict(model_rf, data_test, type="raw")
+model_c5_pred <- predict(mod2, data_test, type="raw")
 
-pred_obs <- data.frame(predicted = model_rf_pred, observed = data_test$isbot)
-confusionMatrix(data = model_rf_pred, reference = data_test$isbot)
+pred_obs <- data.frame(predicted = model_c5_pred, observed = data_test$isbot)
+confusionMatrix(data = model_c5_pred, reference = data_test$isbot)
 ```
 
 
